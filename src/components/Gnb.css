@@ -72,6 +72,8 @@
   transition: all 0.3s ease;
   /* ::after 가상 요소를 위한 기준점 설정 */
   position: relative;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 /* GNB 링크에 마우스를 올렸을 때 */
@@ -132,6 +134,8 @@
   transition: all 0.3s ease;
   /* 투명한 배경 */
   background: transparent;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 /* 로그인/회원가입 버튼에 마우스를 올렸을 때 */
@@ -187,6 +191,8 @@
   cursor: pointer;
   /* 전환 효과 */
   transition: all 0.3s ease;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 /* 사용자 정보 영역 호버 효과 */
@@ -232,6 +238,41 @@
   /* background: transparent; */
   /* 마우스 커서를 포인터로 변경 */
   cursor: pointer;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+@media (max-width: 768px) {
+  .gnb-container {
+    padding: 0.75rem 1rem;
+    flex-wrap: nowrap;
+  }
+
+  .gnb-left {
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+  }
+
+  .gnb-right {
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+  }
+
+  .gnb-link {
+    font-size: 0.95rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .auth-link,
+  .logout-button {
+    font-size: 0.82rem;
+    padding: 0.4rem 0.7rem;
+  }
+
+  .gnb-user-info {
+    font-size: 0.82rem;
+    padding: 0.4rem 0.65rem;
+  }
 }
 
 /* 로그아웃 버튼에 마우스를 올렸을 때 */

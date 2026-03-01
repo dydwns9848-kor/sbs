@@ -229,7 +229,7 @@ function Login() {
       <GNB />
         <div className="login-container">
           <div className='login-card'>
-            <h1>로그인</h1>
+            <h1 className="login-title">로그인</h1>
             <form onSubmit={handleSubmit} className="login-form">
               <div className="form-group">
                 <input type="email"
@@ -239,6 +239,8 @@ function Login() {
                   onChange={handleChange}
                   placeholder="이메일을 입력하세요"
                   className={errors.email ? 'error' : ''}
+                  autoComplete="email"
+                  aria-invalid={!!errors.email}
                 />
                 {errors.email && <span className="error-message">{errors.email}</span>}
               </div>
@@ -250,6 +252,8 @@ function Login() {
                   onChange={handleChange}
                   placeholder="비밀번호를 입력하세요"
                   className={errors.password ? 'error' : ''}
+                  autoComplete="current-password"
+                  aria-invalid={!!errors.password}
                 />
                 {errors.password && <span className="error-message">{errors.password}</span>}
               </div>

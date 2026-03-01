@@ -1,0 +1,15 @@
+.home-container {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 96px 16px 84px;
+}
+
+.home-title {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(2rem, 4vw, 4rem);
+  line-height: 1.1;
+}

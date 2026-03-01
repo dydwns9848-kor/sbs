@@ -43,14 +43,13 @@ a:hover {
 body {
   /* 기본 여백 제거 */
   margin: 0;
-  /* flexbox 레이아웃 사용 */
-  display: flex;
-  /* 가로/세로 중앙 정렬 (align-items와 justify-content의 단축 속성) */
-  place-items: center;
+  /* 전체 앱 레이아웃 왜곡 방지를 위해 일반 문서 흐름 사용 */
+  display: block;
   /* 최소 너비를 320px로 설정 (모바일 최소 지원 크기) */
   min-width: 320px;
   /* 최소 높이를 뷰포트 높이의 100%로 설정 */
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* h1 태그에 대한 스타일 설정 */
