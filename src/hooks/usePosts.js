@@ -19,6 +19,7 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
   const [posts, setPosts] = useState([]);           // 게시글 목록
   const [isLoading, setIsLoading] = useState(true); // 로딩 상태
   const [error, setError] = useState(null);         // 에러 상태
+  const [likeLoadingIds, setLikeLoadingIds] = useState([]); // 좋아요 처리 중인 게시글 ID 목록
 
   // ==========================================
   // 게시글 목록 조회
@@ -110,6 +111,70 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
   };
 
   // ==========================================
+  // 게시글 좋아요 / 좋아요 취소
+  // ==========================================
+
+  const isPostLiked = (post) => {
+    return Boolean(post?.liked ?? post?.isLiked ?? false);
+  };
+
+  const setPostLikeState = (postId, liked, likeCount) => {
+    setPosts(prev => prev.map(post => {
+      if (post.id !== postId) return post;
+      return {
+        ...post,
+        liked,
+        isLiked: liked,
+        likeCount: likeCount ?? post.likeCount ?? 0
+      };
+    }));
+  };
+
+  const togglePostLike = async (postId) => {
+    if (!accessToken) {
+      alert('로그인이 필요합니다.');
+      return false;
+    }
+
+    const targetPost = posts.find(post => post.id === postId);
+    if (!targetPost) return false;
+
+    const currentlyLiked = isPostLiked(targetPost);
+    const nextLiked = !currentlyLiked;
+    const currentCount = targetPost.likeCount || 0;
+    const optimisticCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
+
+    // 낙관적 업데이트
+    setPostLikeState(postId, nextLiked, optimisticCount);
+    setLikeLoadingIds(prev => [...prev, postId]);
+
+    try {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${postId}/like`;
+      const method = currentlyLiked ? 'delete' : 'post';
+      const response = await axios({
+        method,
+        url,
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+        withCredentials: true
+      });
+
+      const data = response.data?.data;
+      const serverLiked = data?.liked ?? nextLiked;
+      const serverLikeCount = data?.likeCount ?? optimisticCount;
+      setPostLikeState(postId, serverLiked, serverLikeCount);
+      return true;
+    } catch (err) {
+      console.error('게시글 좋아요 처리 실패:', err);
+      // 실패 시 원복
+      setPostLikeState(postId, currentlyLiked, currentCount);
+      alert('좋아요 처리에 실패했습니다.');
+      return false;
+    } finally {
+      setLikeLoadingIds(prev => prev.filter(id => id !== postId));
+    }
+  };
+
+  // ==========================================
   // 반환값
   // ==========================================
   return {
@@ -118,5 +183,7 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
     error,
     fetchPosts,  // 목록 새로고침
     deletePost,
+    togglePostLike,
+    likeLoadingIds,
   };
 }

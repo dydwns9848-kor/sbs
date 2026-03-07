@@ -23,7 +23,7 @@ function PostList() {
   const [activeTab, setActiveTab] = useState('all');
 
   // 게시글 목록 조회 (탭에 따라 다른 API 호출)
-  const { posts, isLoading, error, fetchPosts } = usePosts(accessToken, {
+  const { posts, isLoading, error, fetchPosts, togglePostLike, likeLoadingIds } = usePosts(accessToken, {
     myPostsOnly: activeTab === 'mine'
   });
 
@@ -86,7 +86,13 @@ function PostList() {
             </div>
           ) : (
             posts.map(post => (
-              <PostCard key={post.id} post={post} />
+              <PostCard
+                key={post.id}
+                post={post}
+                isAuthenticated={isAuthenticated}
+                onToggleLike={togglePostLike}
+                isLikeLoading={likeLoadingIds.includes(post.id)}
+              />
             ))
           )}
         </div>

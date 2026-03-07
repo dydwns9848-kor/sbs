@@ -8,7 +8,9 @@ import { Link } from 'react-router-dom';
  *
  * @param {Object} props.post - 게시글 데이터 (PostListResponse 또는 PostResponse)
  */
-function PostCard({ post }) {
+function PostCard({ post, isAuthenticated, onToggleLike, isLikeLoading = false }) {
+  const liked = Boolean(post?.liked ?? post?.isLiked ?? false);
+
   // 작성 시간을 "몇 분 전" 형태로 변환
   const formatTime = (dateString) => {
     if (!dateString) return '';
@@ -34,6 +36,14 @@ function PostCard({ post }) {
   // 작성자 정보 (author 객체 또는 직접 필드)
   const authorName = post.author?.name || post.userName || '알 수 없음';
   const authorImage = post.author?.profileImage || post.userProfileImage || null;
+
+  const handleLikeClick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated || !onToggleLike || isLikeLoading) return;
+    await onToggleLike(post.id);
+  };
 
   return (
     <Link to={`/posts/${post.id}`} className="post-card">
@@ -75,7 +85,15 @@ function PostCard({ post }) {
 
       {/* 하단 통계 (좋아요, 댓글, 조회수) */}
       <div className="post-card-footer">
-        <span className="post-card-stat">♥ {post.likeCount || 0}</span>
+        <button
+          type="button"
+          className={`post-card-like-button ${liked ? 'active' : ''}`}
+          onClick={handleLikeClick}
+          disabled={!isAuthenticated || isLikeLoading}
+          aria-label={liked ? '좋아요 취소' : '좋아요'}
+        >
+          {isLikeLoading ? '처리 중...' : `♥ ${post.likeCount || 0}`}
+        </button>
         <span className="post-card-stat">💬 {post.commentCount || 0}</span>
         <span className="post-card-stat">👁 {post.viewCount || 0}</span>
       </div>

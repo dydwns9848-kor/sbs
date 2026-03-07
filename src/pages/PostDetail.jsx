@@ -27,6 +27,7 @@ function PostDetail() {
   const [post, setPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
 
   /**
    * 게시글 상세 데이터를 서버에서 가져옵니다.
@@ -94,6 +95,61 @@ function PostDetail() {
     } catch (err) {
       console.error('게시글 삭제 실패:', err);
       alert('게시글 삭제에 실패했습니다.');
+    }
+  };
+
+  const isPostLiked = Boolean(post?.liked ?? post?.isLiked ?? false);
+
+  const handleToggleLike = async () => {
+    if (!accessToken) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+    if (!post || isLikeLoading) return;
+
+    const currentLiked = isPostLiked;
+    const nextLiked = !currentLiked;
+    const currentCount = post.likeCount || 0;
+    const optimisticCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
+
+    setPost(prev => prev ? {
+      ...prev,
+      liked: nextLiked,
+      isLiked: nextLiked,
+      likeCount: optimisticCount
+    } : prev);
+    setIsLikeLoading(true);
+
+    try {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${id}/like`;
+      const method = currentLiked ? 'delete' : 'post';
+      const response = await axios({
+        method,
+        url,
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+        withCredentials: true
+      });
+
+      const data = response.data?.data;
+      const serverLiked = data?.liked ?? nextLiked;
+      const serverLikeCount = data?.likeCount ?? optimisticCount;
+      setPost(prev => prev ? {
+        ...prev,
+        liked: serverLiked,
+        isLiked: serverLiked,
+        likeCount: serverLikeCount
+      } : prev);
+    } catch (err) {
+      console.error('게시글 좋아요 처리 실패:', err);
+      setPost(prev => prev ? {
+        ...prev,
+        liked: currentLiked,
+        isLiked: currentLiked,
+        likeCount: currentCount
+      } : prev);
+      alert('좋아요 처리에 실패했습니다.');
+    } finally {
+      setIsLikeLoading(false);
     }
   };
 
@@ -190,7 +246,15 @@ function PostDetail() {
 
             {/* 하단 통계 */}
             <div className="post-detail-stats">
-              <span className="post-detail-stat">♥ {post.likeCount || 0}</span>
+              <button
+                type="button"
+                className={`post-detail-like-button ${isPostLiked ? 'active' : ''}`}
+                onClick={handleToggleLike}
+                disabled={!accessToken || isLikeLoading}
+                aria-label={isPostLiked ? '좋아요 취소' : '좋아요'}
+              >
+                {isLikeLoading ? '처리 중...' : `♥ ${post.likeCount || 0}`}
+              </button>
               <span className="post-detail-stat">💬 {post.commentCount || 0}</span>
               <span className="post-detail-stat">👁 {post.viewCount || 0}</span>
             </div>

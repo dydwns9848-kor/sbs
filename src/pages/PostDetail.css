@@ -162,6 +162,29 @@
   font-size: 0.9rem;
 }
 
+.post-detail-like-button {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.post-detail-like-button:hover:not(:disabled) {
+  color: #ff7b7b;
+}
+
+.post-detail-like-button.active {
+  color: #ff7b7b;
+}
+
+.post-detail-like-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 /* 공개 범위 표시 */
 .post-detail-visibility {
   color: rgba(255, 255, 255, 0.4);
