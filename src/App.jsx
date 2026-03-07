@@ -9,6 +9,7 @@ import PostList from './pages/PostList'
 import PostCreate from './pages/PostCreate'
 import PostDetail from './pages/PostDetail'
 import Feed from './pages/Feed'
+import UserProfile from './pages/UserProfile'
 import { AuthProvider } from './contexts/AuthProvider'
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
             <Route path='/posts' element={<PostList />}/>
             <Route path='/posts/create' element={<PostCreate />}/>
             <Route path='/posts/:id' element={<PostDetail />}/>
+            <Route path='/users/:id' element={<UserProfile />}/>
           </Routes>
         </BrowserRouter>
       </AuthProvider>

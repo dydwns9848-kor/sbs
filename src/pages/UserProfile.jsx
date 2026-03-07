@@ -1,0 +1,208 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+
+import GNB from '../components/Gnb';
+import Footer from '../components/Footer';
+import { API_CONFIG } from '../config';
+import { useAuth } from '../hooks/useAuth';
+import { useFollow } from '../hooks/useFollow';
+import './UserProfile.css';
+
+async function tryFetchUserPosts(authorId, accessToken) {
+  const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+  const withCredentials = true;
+
+  const candidates = [
+    { url: `${API_CONFIG.baseUrl}/users/${authorId}/posts`, params: { page: 0, size: 60 } },
+    { url: `${API_CONFIG.baseUrl}/posts/user/${authorId}`, params: { page: 0, size: 60 } },
+    { url: `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}`, params: { page: 0, size: 60, userId: authorId } },
+    { url: `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.feed.explore}`, params: { page: 0, size: 80 } },
+    { url: `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}`, params: { page: 0, size: 80 } },
+  ];
+
+  for (const req of candidates) {
+    try {
+      const response = await axios.get(req.url, {
+        params: req.params,
+        headers,
+        withCredentials,
+      });
+      const data = response.data?.data ?? response.data;
+      const posts = Array.isArray(data) ? data : (data?.content || []);
+      if (!Array.isArray(posts)) continue;
+
+      const filtered = posts.filter((p) => {
+        const pid = p?.author?.id || p?.userId;
+        return Number(pid) === Number(authorId);
+      });
+
+      // 일부 API는 이미 userId 필터가 서버에서 적용되어서 빈 필터가 나올 수 있어 그대로 사용
+      if (filtered.length > 0) return filtered;
+      if (req.params?.userId) return posts;
+    } catch (err) {
+      // 다음 후보 API 시도
+    }
+  }
+
+  return [];
+}
+
+function UserProfile() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, accessToken, isAuthenticated } = useAuth();
+  const { getFollowCounts, checkFollowing, follow, unfollow, isMutating: isFollowMutating } = useFollow(accessToken);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [profile, setProfile] = useState({
+    name: location.state?.authorName || `User ${id}`,
+    profileImage: location.state?.authorImage || null,
+  });
+  const [followCounts, setFollowCounts] = useState({ followerCount: 0, followingCount: 0 });
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  const authorId = Number(id);
+  const isOwner = Boolean(user && Number(user.id) === authorId);
+
+  const loadPage = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [counts, following, userPosts] = await Promise.all([
+        getFollowCounts(authorId),
+        isAuthenticated && !isOwner ? checkFollowing(authorId) : Promise.resolve(false),
+        tryFetchUserPosts(authorId, accessToken),
+      ]);
+
+      setFollowCounts({
+        followerCount: Number(counts?.followerCount || 0),
+        followingCount: Number(counts?.followingCount || 0),
+      });
+      setIsFollowing(Boolean(following));
+      setPosts(userPosts);
+
+      if (userPosts.length > 0) {
+        const first = userPosts[0];
+        const inferredName = first?.author?.name || first?.userName;
+        const inferredImage = first?.author?.profileImage || first?.userProfileImage || null;
+        setProfile((prev) => ({
+          name: inferredName || prev.name,
+          profileImage: inferredImage || prev.profileImage,
+        }));
+      }
+    } catch (err) {
+      setError('프로필 정보를 불러오지 못했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authorId, getFollowCounts, checkFollowing, isAuthenticated, isOwner, accessToken]);
+
+  useEffect(() => {
+    loadPage();
+  }, [loadPage]);
+
+  const thumbnailPosts = useMemo(() => (
+    posts.filter((p) => p?.thumbnailUrl || (p?.images && p.images.length > 0))
+  ), [posts]);
+
+  const handleFollowToggle = async () => {
+    if (!isAuthenticated || !accessToken) {
+      alert('로그인 후 팔로우할 수 있습니다.');
+      navigate('/login');
+      return;
+    }
+    if (isOwner || isFollowMutating) return;
+
+    const prevFollowing = isFollowing;
+    const prevCount = followCounts.followerCount || 0;
+    const nextFollowing = !prevFollowing;
+
+    setIsFollowing(nextFollowing);
+    setFollowCounts((prev) => ({
+      ...prev,
+      followerCount: Math.max(0, prevCount + (nextFollowing ? 1 : -1)),
+    }));
+
+    try {
+      const result = prevFollowing ? await unfollow(authorId) : await follow(authorId);
+      setIsFollowing(Boolean(result?.following ?? nextFollowing));
+      setFollowCounts((prev) => ({
+        followerCount: Number(result?.followerCount ?? prev.followerCount),
+        followingCount: Number(result?.followingCount ?? prev.followingCount),
+      }));
+    } catch (err) {
+      setIsFollowing(prevFollowing);
+      setFollowCounts((prev) => ({ ...prev, followerCount: prevCount }));
+      alert('팔로우 처리에 실패했습니다.');
+    }
+  };
+
+  return (
+    <>
+      <GNB />
+      <div className="user-profile-container">
+        {isLoading ? (
+          <div className="user-profile-state">프로필을 불러오는 중...</div>
+        ) : error ? (
+          <div className="user-profile-state">{error}</div>
+        ) : (
+          <>
+            <section className="user-profile-header">
+              {profile.profileImage ? (
+                <img src={profile.profileImage} alt={profile.name} className="user-profile-avatar" />
+              ) : (
+                <div className="user-profile-avatar-placeholder">{profile.name.charAt(0)}</div>
+              )}
+
+              <div className="user-profile-meta">
+                <h1>{profile.name}</h1>
+                <p>
+                  팔로워 {followCounts.followerCount} · 팔로잉 {followCounts.followingCount}
+                </p>
+              </div>
+
+              {!isOwner && (
+                <button
+                  type="button"
+                  className={`user-profile-follow-btn ${isFollowing ? 'following' : ''}`}
+                  onClick={handleFollowToggle}
+                  disabled={isFollowMutating}
+                >
+                  {isFollowMutating ? '처리 중...' : isFollowing ? '언팔로우' : '팔로우'}
+                </button>
+              )}
+            </section>
+
+            <section className="user-profile-grid-section">
+              <div className="user-profile-grid-title">
+                게시글 {posts.length}개
+              </div>
+
+              {thumbnailPosts.length === 0 ? (
+                <div className="user-profile-state">표시할 썸네일 게시글이 없습니다.</div>
+              ) : (
+                <div className="user-profile-grid">
+                  {thumbnailPosts.map((p) => {
+                    const thumb = p.thumbnailUrl || p.images?.[0]?.thumbnailUrl || p.images?.[0]?.imageUrl;
+                    return (
+                      <Link key={p.id} to={`/posts/${p.id}`} className="user-profile-grid-item" title="게시글 보기">
+                        <img src={thumb} alt="post thumbnail" />
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </>
+        )}
+      </div>
+      <Footer />
+    </>
+  );
+}
+
+export default UserProfile;

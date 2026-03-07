@@ -269,6 +269,16 @@ function PostDetail() {
     }
   };
 
+  const handleAuthorNavigate = () => {
+    if (!authorId) return;
+    navigate(`/users/${authorId}`, {
+      state: {
+        authorName,
+        authorImage,
+      },
+    });
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -298,7 +308,11 @@ function PostDetail() {
         ) : post ? (
           <div className="post-detail-card">
             <div className="post-detail-header">
-              <div className="post-detail-author">
+              <button
+                type="button"
+                className="post-detail-author post-detail-author-link"
+                onClick={handleAuthorNavigate}
+              >
                 {authorImage ? (
                   <img src={authorImage} alt={authorName} className="post-detail-avatar" />
                 ) : (
@@ -311,7 +325,7 @@ function PostDetail() {
                     팔로워 {followCounts.followerCount} · 팔로잉 {followCounts.followingCount}
                   </span>
                 </div>
-              </div>
+              </button>
 
               <div className="post-detail-actions">
                 {isOwner ? (

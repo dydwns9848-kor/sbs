@@ -86,6 +86,16 @@
   gap: 0.55rem;
 }
 
+
+
+.post-card-author-clickable {
+  cursor: pointer;
+}
+
+.post-card-author-clickable:hover .post-card-author-name {
+  color: var(--brand-cyan);
+}
+
 .post-card-avatar,
 .post-card-avatar-placeholder {
   width: 38px;
@@ -232,6 +242,7 @@
     padding: 0.85rem;
   }
 }
+
 
 
 

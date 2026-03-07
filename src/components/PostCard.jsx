@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../hooks/useAuth';
 import { useFollow } from '../hooks/useFollow';
@@ -15,6 +15,7 @@ function PostCard({
   isLikeLoading = false,
   onViewed,
 }) {
+  const navigate = useNavigate();
   const { accessToken } = useAuth();
   const { getFollowCounts } = useFollow(accessToken);
 
@@ -110,11 +111,25 @@ function PostCard({
     setIsFollowModalOpen(true);
   };
 
+  const handleAuthorClick = (e) => {
+    if (!authorId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/users/${authorId}`, {
+      state: {
+        authorName,
+        authorImage,
+      },
+    });
+  };
+
   return (
     <>
       <Link to={`/posts/${post.id}`} className="post-card" onClick={handleCardClick}>
       <div className="post-card-header">
-        <div className="post-card-author">
+        <div className="post-card-author post-card-author-clickable" onClick={handleAuthorClick} role="button" tabIndex={0} onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') handleAuthorClick(e);
+        }}>
           {authorImage ? (
             <img src={authorImage} alt={authorName} className="post-card-avatar" />
           ) : (

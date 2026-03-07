@@ -29,6 +29,20 @@
   gap: 0.7rem;
 }
 
+
+
+.post-detail-author-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.post-detail-author-link:hover .post-detail-author-name {
+  color: var(--brand-cyan);
+}
+
 .post-detail-avatar,
 .post-detail-avatar-placeholder {
   width: 44px;
@@ -199,3 +213,4 @@
     align-items: flex-start;
   }
 }
+
