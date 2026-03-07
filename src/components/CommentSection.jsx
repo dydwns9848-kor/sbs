@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useComments } from '../hooks/useComments';
 import './CommentSection.css';
 
-function CommentSection({ postId }) {
+function CommentSection({ postId, onCommentCountChange }) {
   const { user, accessToken, isAuthenticated } = useAuth();
   const {
     comments,
@@ -29,10 +29,13 @@ function CommentSection({ postId }) {
     e.preventDefault();
     if (!newComment.trim()) return;
     setIsSubmitting(true);
-    try {
-      await createComment(newComment.trim());
-      setNewComment('');
-    } catch (err) {
+      try {
+        const created = await createComment(newComment.trim());
+        if (created) {
+          onCommentCountChange?.(1);
+          setNewComment('');
+        }
+      } catch (err) {
       console.error('댓글 작성 실패:', err);
     } finally {
       setIsSubmitting(false);
@@ -91,7 +94,10 @@ function CommentSection({ postId }) {
     if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
     setIsSubmitting(true);
     try {
-      await deleteComment(commentId);
+      const deleted = await deleteComment(commentId);
+      if (deleted !== undefined) {
+        onCommentCountChange?.(-1);
+      }
     } catch (err) {
       console.error('댓글 삭제 실패:', err);
     } finally {

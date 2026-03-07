@@ -30,6 +30,12 @@ function PostDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
+  const handleCommentCountChange = (delta) => {
+    setPost(prev => prev ? {
+      ...prev,
+      commentCount: Math.max(0, (prev.commentCount || 0) + delta)
+    } : prev);
+  };
 
   /**
    * 게시글 상세 데이터를 서버에서 가져옵니다.
@@ -276,7 +282,12 @@ function PostDetail() {
             </div>
           </div>
         ) : null}
-        {post && <CommentSection postId={post.id} />}
+        {post && (
+          <CommentSection
+            postId={post.id}
+            onCommentCountChange={handleCommentCountChange}
+          />
+        )}
       </div>
       <Footer />
     </>
