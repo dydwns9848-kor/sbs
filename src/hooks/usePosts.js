@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '../config';
-import { getViewCount, withViewCount } from '../utils/viewCount';
+import {
+  getViewCount,
+  withViewCount,
+  rememberViewCount,
+  applyCachedViewCounts,
+} from '../utils/viewCount';
 
 /**
  * usePosts 커스텀 훅
@@ -61,7 +66,7 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
         const postData = Array.isArray(response.data.data)
           ? response.data.data
           : response.data.data.content || [];
-        setPosts(postData);
+        setPosts(applyCachedViewCounts(postData));
       } else {
         setPosts([]);
       }
@@ -180,6 +185,7 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
       prev.map(post => {
         if (post.id !== postId) return post;
         const nextCount = getViewCount(post) + 1;
+        rememberViewCount(postId, nextCount);
         return withViewCount(post, nextCount);
       })
     );

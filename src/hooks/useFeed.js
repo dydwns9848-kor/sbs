@@ -1,7 +1,12 @@
 import { useCallback, useState } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '../config';
-import { getViewCount, withViewCount } from '../utils/viewCount';
+import {
+  getViewCount,
+  withViewCount,
+  rememberViewCount,
+  applyCachedViewCounts,
+} from '../utils/viewCount';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -47,7 +52,7 @@ export function useFeed(accessToken) {
 
       const data = response.data?.data;
       const feedPosts = Array.isArray(data?.content) ? data.content : [];
-      setPosts(feedPosts);
+      setPosts(applyCachedViewCounts(feedPosts));
       setPagination({
         totalElements: data?.totalElements || 0,
         totalPages: data?.totalPages || 0,
@@ -75,6 +80,7 @@ export function useFeed(accessToken) {
     updatePost(postId, prev => {
       if (!prev) return prev;
       const nextCount = getViewCount(prev) + 1;
+      rememberViewCount(postId, nextCount);
       return withViewCount(prev, nextCount);
     });
   }, [updatePost]);
