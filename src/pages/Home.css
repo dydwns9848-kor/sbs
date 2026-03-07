@@ -5,6 +5,7 @@
   align-items: center;
   box-sizing: border-box;
   padding: 96px 16px 84px;
+  perspective: 1000px;
 }
 
 .home-title {
@@ -12,4 +13,23 @@
   text-align: center;
   font-size: clamp(2rem, 4vw, 4rem);
   line-height: 1.1;
+  display: inline-block;
+  transform-style: preserve-3d;
+  will-change: transform;
+  animation: mywork-spin-3d 8s linear infinite;
+}
+
+@keyframes mywork-spin-3d {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-title {
+    animation: none;
+  }
 }
