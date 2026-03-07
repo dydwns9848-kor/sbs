@@ -175,6 +175,18 @@ export const VALIDATION_MESSAGES = {
   },
 };
 
+// Normalize Korean labels/messages that may be broken by encoding
+FORM_CONFIG.visibilityOptions = [
+  { value: 'PUBLIC', label: '전체 공개' },
+  { value: 'PRIVATE', label: '비공개' },
+  { value: 'FOLLOWERS', label: '팔로워만' },
+];
+
+VALIDATION_MESSAGES.image.invalidType = '이미지 파일만 업로드할 수 있습니다.';
+VALIDATION_MESSAGES.image.tooLarge = (maxMB) => `파일 크기는 ${maxMB}MB 이하여야 합니다.`;
+VALIDATION_MESSAGES.post.contentRequired = '게시글 내용을 입력해주세요.';
+VALIDATION_MESSAGES.post.contentTooLong = '게시글은 5000자 이내로 입력해주세요.';
+
 // ==========================================
 // 통합 설정 객체
 // ==========================================
