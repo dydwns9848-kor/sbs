@@ -1,313 +1,333 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import axios from 'axios';
 import AuthContext from './AuthContext';
 
 /**
- * AuthProvider 컴포넌트
+ * AuthProvider 而댄룷?뚰듃
  *
- * 인증 상태를 관리하고 하위 컴포넌트들에게 인증 정보를 제공합니다.
+ * ?몄쬆 ?곹깭瑜?愿由ы븯怨??섏쐞 而댄룷?뚰듃?ㅼ뿉寃??몄쬆 ?뺣낫瑜??쒓났?⑸땲??
  *
- * @param {Object} props - 컴포넌트 props
- * @param {ReactNode} props.children - 하위 컴포넌트들
+ * @param {Object} props - 而댄룷?뚰듃 props
+ * @param {ReactNode} props.children - ?섏쐞 而댄룷?뚰듃??
  */
 export function AuthProvider({ children }) {
-  // 사용자 정보를 저장하는 상태
-  // user 객체: { id, email, name, role }
+  // ?ъ슜???뺣낫瑜???ν븯???곹깭
+  // user 媛앹껜: { id, email, name, role }
   const [user, setUser] = useState(null);
 
-  // accessToken을 저장하는 상태
-  // JWT 토큰 문자열
+  // accessToken????ν븯???곹깭
+  // JWT ?좏겙 臾몄옄??
   const [accessToken, setAccessToken] = useState(null);
 
-  // 로딩 상태 (초기 로드 시 localStorage에서 데이터를 불러오는 동안)
+  // 濡쒕뵫 ?곹깭 (珥덇린 濡쒕뱶 ??localStorage?먯꽌 ?곗씠?곕? 遺덈윭?ㅻ뒗 ?숈븞)
   const [isLoading, setIsLoading] = useState(true);
 
   /**
-   * useEffect: 컴포넌트 마운트 시 /refresh API를 호출하여 인증 정보 복원
+   * useEffect: 而댄룷?뚰듃 留덉슫????/refresh API瑜??몄텧?섏뿬 ?몄쬆 ?뺣낫 蹂듭썝
    *
-   * 브라우저를 새로고침해도 로그인 상태가 유지되도록
-   * HTTP-only 쿠키에 저장된 refreshToken을 사용하여
-   * 서버로부터 새로운 accessToken을 발급받습니다.
+   * 釉뚮씪?곗?瑜??덈줈怨좎묠?대룄 濡쒓렇???곹깭媛 ?좎??섎룄濡?
+   * HTTP-only 荑좏궎????λ맂 refreshToken???ъ슜?섏뿬
+   * ?쒕쾭濡쒕????덈줈??accessToken??諛쒓툒諛쏆뒿?덈떎.
    *
-   * 처리 과정:
-   * 1. localStorage에 사용자 정보가 있는지 확인 (로그인 이력 확인)
-   * 2. 사용자 정보가 있으면 /api/refresh API 호출 (withCredentials: true로 쿠키 포함)
-   * 3. 서버가 refreshToken 쿠키를 확인하고 유효하면 새 accessToken 발급
-   * 4. 성공 시 사용자 정보와 accessToken을 상태에 저장
-   * 5. 실패 시 (refreshToken 만료) localStorage 정리하고 로그아웃 상태 유지
-   * 6. localStorage에 사용자 정보가 없으면 API 호출 없이 로그아웃 상태 유지
+   * 泥섎━ 怨쇱젙:
+   * 1. localStorage???ъ슜???뺣낫媛 ?덈뒗吏 ?뺤씤 (濡쒓렇???대젰 ?뺤씤)
+   * 2. ?ъ슜???뺣낫媛 ?덉쑝硫?/api/refresh API ?몄텧 (withCredentials: true濡?荑좏궎 ?ы븿)
+   * 3. ?쒕쾭媛 refreshToken 荑좏궎瑜??뺤씤?섍퀬 ?좏슚?섎㈃ ??accessToken 諛쒓툒
+   * 4. ?깃났 ???ъ슜???뺣낫? accessToken???곹깭?????
+   * 5. ?ㅽ뙣 ??(refreshToken 留뚮즺) localStorage ?뺣━?섍퀬 濡쒓렇?꾩썐 ?곹깭 ?좎?
+   * 6. localStorage???ъ슜???뺣낫媛 ?놁쑝硫?API ?몄텧 ?놁씠 濡쒓렇?꾩썐 ?곹깭 ?좎?
    */
   useEffect(() => {
-    // async 함수를 정의하여 API 호출
+    // async ?⑥닔瑜??뺤쓽?섏뿬 API ?몄텧
     const checkAuth = async () => {
       // ========================================
-      // 🔑 중요: 이미 로그인된 상태라면 refresh 호출 생략
+      // ?뵎 以묒슂: ?대? 濡쒓렇?몃맂 ?곹깭?쇰㈃ refresh ?몄텧 ?앸왂
       // ========================================
-      // user와 accessToken이 이미 메모리에 있다면 (예: 카카오 로그인 직후)
-      // /refresh API를 호출할 필요가 없음
+      // user? accessToken???대? 硫붾え由ъ뿉 ?덈떎硫?(?? 移댁뭅??濡쒓렇??吏곹썑)
+      // /refresh API瑜??몄텧???꾩슂媛 ?놁쓬
       if (user && accessToken) {
-        console.log('이미 로그인된 상태 - /refresh API 호출 생략');
+        console.log('?대? 濡쒓렇?몃맂 ?곹깭 - /refresh API ?몄텧 ?앸왂');
         setIsLoading(false);
         return;
       }
 
-      // localStorage에서 저장된 사용자 정보 확인
+      // localStorage?먯꽌 ??λ맂 ?ъ슜???뺣낫 ?뺤씤
       const savedUser = localStorage.getItem('user');
 
-      // 사용자 정보가 없으면 로그인 이력이 없는 것이므로 API 호출 불필요
+      // ?ъ슜???뺣낫媛 ?놁쑝硫?濡쒓렇???대젰???녿뒗 寃껋씠誘濡?API ?몄텧 遺덊븘??
       if (!savedUser) {
-        console.log('로그인 이력 없음 - /refresh API 호출 생략');
+        console.log('濡쒓렇???대젰 ?놁쓬 - /refresh API ?몄텧 ?앸왂');
         setIsLoading(false);
         return;
       }
 
-      // 사용자 정보가 있으면 /refresh API 호출하여 토큰 갱신 시도
-      // (페이지 새로고침 시나리오: localStorage에는 user가 있지만 메모리에는 없음)
+      // ?ъ슜???뺣낫媛 ?덉쑝硫?/refresh API ?몄텧?섏뿬 ?좏겙 媛깆떊 ?쒕룄
+      // (?섏씠吏 ?덈줈怨좎묠 ?쒕굹由ъ삤: localStorage?먮뒗 user媛 ?덉?留?硫붾え由ъ뿉???놁쓬)
       try {
-        console.log('=== /api/refresh 호출 (페이지 새로고침) ===');
-        console.log('localStorage의 user:', savedUser);
-        console.log('현재 브라우저 쿠키:', document.cookie);
+        console.log('=== /api/refresh ?몄텧 (?섏씠吏 ?덈줈怨좎묠) ===');
+        console.log('localStorage??user:', savedUser);
+        console.log('?꾩옱 釉뚮씪?곗? 荑좏궎:', document.cookie);
 
-        // /api/refresh 엔드포인트 호출
-        // withCredentials: true로 HTTP-only 쿠키(refreshToken) 포함
+        // /api/refresh ?붾뱶?ъ씤???몄텧
+        // withCredentials: true濡?HTTP-only 荑좏궎(refreshToken) ?ы븿
         const response = await axios.post('/api/refresh', {}, {
           withCredentials: true
         });
 
-        console.log('=== /api/refresh 응답 성공 ===');
-        console.log('응답 데이터:', response.data);
+        console.log('=== /api/refresh ?묐떟 ?깃났 ===');
+        console.log('?묐떟 ?곗씠??', response.data);
 
-        // 서버 응답 확인
+        // ?쒕쾭 ?묐떟 ?뺤씤
         if (response.data.success) {
-          // 토큰 갱신 성공: 사용자 정보와 새 accessToken 저장
+          // ?좏겙 媛깆떊 ?깃났: ?ъ슜???뺣낫? ??accessToken ???
           const token = response.data.data.accessToken;
 
-          // 백엔드가 user 정보를 반환하는 경우와 안 하는 경우 모두 처리
+          // 諛깆뿏?쒓? user ?뺣낫瑜?諛섑솚?섎뒗 寃쎌슦? ???섎뒗 寃쎌슦 紐⑤몢 泥섎━
           let userData = response.data.data.user;
 
-          // 백엔드가 user 정보를 반환하지 않으면 localStorage에서 가져옴
+          // 諛깆뿏?쒓? user ?뺣낫瑜?諛섑솚?섏? ?딆쑝硫?localStorage?먯꽌 媛?몄샂
           if (!userData) {
-            console.log('백엔드가 user 정보를 반환하지 않음 - localStorage에서 복원');
+            console.log('諛깆뿏?쒓? user ?뺣낫瑜?諛섑솚?섏? ?딆쓬 - localStorage?먯꽌 蹂듭썝');
             userData = JSON.parse(savedUser);
           }
 
-          console.log('상태 업데이트 전 - user:', user);
-          console.log('상태 업데이트 전 - accessToken:', accessToken);
-          console.log('새로 설정할 userData:', userData);
-          console.log('새로 설정할 token:', token);
+          console.log('?곹깭 ?낅뜲?댄듃 ??- user:', user);
+          console.log('?곹깭 ?낅뜲?댄듃 ??- accessToken:', accessToken);
+          console.log('?덈줈 ?ㅼ젙??userData:', userData);
+          console.log('?덈줈 ?ㅼ젙??token:', token);
 
           setUser(userData);
           setAccessToken(token);
 
-          // localStorage에는 사용자 정보만 저장 (UX 개선용, accessToken은 저장하지 않음)
+          // localStorage?먮뒗 ?ъ슜???뺣낫留????(UX 媛쒖꽑?? accessToken? ??ν븯吏 ?딆쓬)
           localStorage.setItem('user', JSON.stringify(userData));
-          console.log('토큰 갱신 성공 - 상태 업데이트 완료');
+          console.log('?좏겙 媛깆떊 ?깃났 - ?곹깭 ?낅뜲?댄듃 ?꾨즺');
         } else {
-          // 토큰 갱신 실패: 로그아웃 상태 유지
-          console.log('토큰 갱신 실패:', response.data.message);
-          // localStorage 정리 (만료된 정보 제거)
+          // ?좏겙 媛깆떊 ?ㅽ뙣: 濡쒓렇?꾩썐 ?곹깭 ?좎?
+          console.log('?좏겙 媛깆떊 ?ㅽ뙣:', response.data.message);
+          // localStorage ?뺣━ (留뚮즺???뺣낫 ?쒓굅)
           localStorage.removeItem('user');
         }
       } catch (error) {
-        // refreshToken이 만료되었거나 유효하지 않은 경우
-        console.error('=== /api/refresh 요청 실패 ===');
-        console.error('에러 상태 코드:', error.response?.status);
-        console.error('에러 응답 데이터:', error.response?.data);
-        console.error('에러 헤더:', error.response?.headers);
-        console.error('전체 에러:', error);
+        // refreshToken??留뚮즺?섏뿀嫄곕굹 ?좏슚?섏? ?딆? 寃쎌슦
+        console.error('=== /api/refresh ?붿껌 ?ㅽ뙣 ===');
+        console.error('?먮윭 ?곹깭 肄붾뱶:', error.response?.status);
+        console.error('?먮윭 ?묐떟 ?곗씠??', error.response?.data);
+        console.error('?먮윭 ?ㅻ뜑:', error.response?.headers);
+        console.error('?꾩껜 ?먮윭:', error);
 
-        // localStorage 정리 (만료된 정보 제거)
+        // localStorage ?뺣━ (留뚮즺???뺣낫 ?쒓굅)
         localStorage.removeItem('user');
       } finally {
-        // 로딩 완료 (성공/실패 관계없이 실행)
+        // 濡쒕뵫 ?꾨즺 (?깃났/?ㅽ뙣 愿怨꾩뾾???ㅽ뻾)
         setIsLoading(false);
       }
     };
 
-    // async 함수 실행
+    // async ?⑥닔 ?ㅽ뻾
     checkAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 빈 배열: 컴포넌트 마운트 시 한 번만 실행 (user, accessToken은 의도적으로 제외)
+  }, []); // 鍮?諛곗뿴: 而댄룷?뚰듃 留덉슫??????踰덈쭔 ?ㅽ뻾 (user, accessToken? ?섎룄?곸쑝濡??쒖쇅)
 
   /**
-   * login 함수
+   * login ?⑥닔
    *
-   * 로그인 성공 시 호출되는 함수입니다.
-   * 서버로부터 받은 사용자 정보와 토큰을 저장합니다.
+   * 濡쒓렇???깃났 ???몄텧?섎뒗 ?⑥닔?낅땲??
+   * ?쒕쾭濡쒕???諛쏆? ?ъ슜???뺣낫? ?좏겙????ν빀?덈떎.
    *
-   * @param {Object} userData - 서버로부터 받은 사용자 정보
+   * @param {Object} userData - ?쒕쾭濡쒕???諛쏆? ?ъ슜???뺣낫
    * @param {string} token - accessToken
    */
   const login = (userData, token) => {
-    // 상태 업데이트
+    // ?곹깭 ?낅뜲?댄듃
     setUser(userData);
     setAccessToken(token);
 
-    // localStorage에는 사용자 정보만 저장 (UX 개선용)
-    // accessToken은 보안을 위해 메모리(state)에만 저장
-    // 페이지 새로고침 시에는 /refresh API를 통해 새 토큰 발급
+    // localStorage?먮뒗 ?ъ슜???뺣낫留????(UX 媛쒖꽑??
+    // accessToken? 蹂댁븞???꾪빐 硫붾え由?state)?먮쭔 ???
+    // ?섏씠吏 ?덈줈怨좎묠 ?쒖뿉??/refresh API瑜??듯빐 ???좏겙 諛쒓툒
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
   /**
-   * logout 함수
+   * logout ?⑥닔
    *
-   * 로그아웃 시 호출되는 함수입니다.
-   * 서버에 로그아웃 요청을 보내고 저장된 모든 인증 정보를 삭제합니다.
+   * 濡쒓렇?꾩썐 ???몄텧?섎뒗 ?⑥닔?낅땲??
+   * ?쒕쾭??濡쒓렇?꾩썐 ?붿껌??蹂대궡怨???λ맂 紐⑤뱺 ?몄쬆 ?뺣낫瑜???젣?⑸땲??
    *
-   * 처리 과정:
-   * 1. 백엔드 /api/logout 엔드포인트 호출 (HTTP-only 쿠키의 refreshToken 삭제)
-   * 2. 프론트엔드 상태 초기화 (user, accessToken)
-   * 3. localStorage 정리
+   * 泥섎━ 怨쇱젙:
+   * 1. 諛깆뿏??/api/logout ?붾뱶?ъ씤???몄텧 (HTTP-only 荑좏궎??refreshToken ??젣)
+   * 2. ?꾨줎?몄뿏???곹깭 珥덇린??(user, accessToken)
+   * 3. localStorage ?뺣━
    */
   const logout = async () => {
     try {
-      // 백엔드에 로그아웃 요청
-      // - HTTP-only 쿠키의 refreshToken을 삭제하기 위해 서버 호출 필요
-      // - withCredentials: true로 쿠키 전송
+      // 諛깆뿏?쒖뿉 濡쒓렇?꾩썐 ?붿껌
+      // - HTTP-only 荑좏궎??refreshToken????젣?섍린 ?꾪빐 ?쒕쾭 ?몄텧 ?꾩슂
+      // - withCredentials: true濡?荑좏궎 ?꾩넚
       await axios.post('/api/logout', {}, {
         withCredentials: true
       });
 
-      console.log('서버 로그아웃 성공');
+      console.log('?쒕쾭 濡쒓렇?꾩썐 ?깃났');
     } catch (error) {
-      // 서버 로그아웃 실패 시에도 클라이언트 상태는 정리
-      console.error('서버 로그아웃 실패:', error);
-      console.log('클라이언트 상태만 정리합니다.');
+      // ?쒕쾭 濡쒓렇?꾩썐 ?ㅽ뙣 ?쒖뿉???대씪?댁뼵???곹깭???뺣━
+      console.error('?쒕쾭 濡쒓렇?꾩썐 ?ㅽ뙣:', error);
+      console.log('?대씪?댁뼵???곹깭留??뺣━?⑸땲??');
     } finally {
-      // 서버 응답 성공/실패 관계없이 클라이언트 상태 정리
-      // (네트워크 오류나 서버 에러가 있어도 사용자는 로그아웃된 것처럼 보여야 함)
+      // ?쒕쾭 ?묐떟 ?깃났/?ㅽ뙣 愿怨꾩뾾???대씪?댁뼵???곹깭 ?뺣━
+      // (?ㅽ듃?뚰겕 ?ㅻ쪟???쒕쾭 ?먮윭媛 ?덉뼱???ъ슜?먮뒗 濡쒓렇?꾩썐??寃껋쿂??蹂댁뿬????
 
-      // 상태 초기화
+      // ?곹깭 珥덇린??
       setUser(null);
       setAccessToken(null);
 
-      // localStorage 정리 (사용자 정보만 제거)
+      // localStorage ?뺣━ (?ъ슜???뺣낫留??쒓굅)
       localStorage.removeItem('user');
 
-      console.log('클라이언트 로그아웃 완료');
+      console.log('?대씪?댁뼵??濡쒓렇?꾩썐 ?꾨즺');
     }
   };
 
   /**
-   * updateToken 함수
+   * updateToken ?⑥닔
    *
-   * accessToken을 갱신하는 함수입니다.
-   * 토큰 갱신 API 호출 후 새로운 토큰을 저장할 때 사용합니다.
+   * accessToken??媛깆떊?섎뒗 ?⑥닔?낅땲??
+   * ?좏겙 媛깆떊 API ?몄텧 ???덈줈???좏겙????ν븷 ???ъ슜?⑸땲??
    *
-   * @param {string} newToken - 새로운 accessToken
+   * @param {string} newToken - ?덈줈??accessToken
    */
   const updateToken = (newToken) => {
     // accessToken은 메모리(state)에만 저장
-    // localStorage에는 저장하지 않음 (보안 강화)
     setAccessToken(newToken);
   };
 
   /**
-   * refreshAccessToken 함수
+   * updateUser 함수
    *
-   * HTTP-only 쿠키에 저장된 Refresh Token을 사용하여
-   * 새로운 Access Token을 발급받는 함수입니다.
+   * 사용자 정보를 부분 또는 전체 업데이트합니다.
+   */
+  const updateUser = (updater) => {
+    setUser((prevUser) => {
+      const nextUser =
+        typeof updater === 'function' ? updater(prevUser) : updater;
+
+      if (nextUser) {
+        localStorage.setItem('user', JSON.stringify(nextUser));
+      } else {
+        localStorage.removeItem('user');
+      }
+
+      return nextUser;
+    });
+  };
+
+  /**
+   * refreshAccessToken ?⑥닔
    *
-   * @returns {Promise<string>} - 새로운 accessToken
-   * @throws {Error} - 토큰 갱신 실패 시 에러 발생
+   * HTTP-only 荑좏궎????λ맂 Refresh Token???ъ슜?섏뿬
+   * ?덈줈??Access Token??諛쒓툒諛쏅뒗 ?⑥닔?낅땲??
    *
-   * 사용 시나리오:
-   * 1. 카카오 소셜 로그인 콜백 처리 시
-   * 2. Access Token 만료 시 자동 갱신
-   * 3. 페이지 새로고침 시 인증 정보 복원
+   * @returns {Promise<string>} - ?덈줈??accessToken
+   * @throws {Error} - ?좏겙 媛깆떊 ?ㅽ뙣 ???먮윭 諛쒖깮
+   *
+   * ?ъ슜 ?쒕굹由ъ삤:
+   * 1. 移댁뭅???뚯뀥 濡쒓렇??肄쒕갚 泥섎━ ??
+   * 2. Access Token 留뚮즺 ???먮룞 媛깆떊
+   * 3. ?섏씠吏 ?덈줈怨좎묠 ???몄쬆 ?뺣낫 蹂듭썝
    */
   const refreshAccessToken = async () => {
     try {
-      // 디버깅: 현재 쿠키 확인
-      console.log('=== /api/refresh 호출 시작 ===');
-      console.log('현재 쿠키:', document.cookie);
+      // ?붾쾭源? ?꾩옱 荑좏궎 ?뺤씤
+      console.log('=== /api/refresh ?몄텧 ?쒖옉 ===');
+      console.log('?꾩옱 荑좏궎:', document.cookie);
       console.log('withCredentials: true');
 
-      // /api/refresh 엔드포인트 호출
-      // withCredentials: true로 HTTP-only 쿠키(refreshToken)를 자동으로 전송
-      // 요청 바디는 빈 객체 {} (일부 백엔드는 null을 받지 않을 수 있음)
+      // /api/refresh ?붾뱶?ъ씤???몄텧
+      // withCredentials: true濡?HTTP-only 荑좏궎(refreshToken)瑜??먮룞?쇰줈 ?꾩넚
+      // ?붿껌 諛붾뵒??鍮?媛앹껜 {} (?쇰? 諛깆뿏?쒕뒗 null??諛쏆? ?딆쓣 ???덉쓬)
       const response = await axios.post('/api/refresh', {}, {
         withCredentials: true,
         headers: { 'Content-Type': 'application/json' }
       });
 
-      console.log('=== /api/refresh 응답 성공 ===');
-      console.log('응답 데이터:', response.data);
+      console.log('=== /api/refresh ?묐떟 ?깃났 ===');
+      console.log('?묐떟 ?곗씠??', response.data);
 
-      // 서버 응답 확인
+      // ?쒕쾭 ?묐떟 ?뺤씤
       if (response.data.success) {
-        // 토큰 갱신 성공: 사용자 정보와 새 accessToken 저장
-        // response.data.data 구조: { accessToken, user: { id, email, name, role } }
+        // ?좏겙 媛깆떊 ?깃났: ?ъ슜???뺣낫? ??accessToken ???
+        // response.data.data 援ъ“: { accessToken, user: { id, email, name, role } }
         const newAccessToken = response.data.data.accessToken;
         const userData = response.data.data.user;
 
-        // 상태 업데이트
+        // ?곹깭 ?낅뜲?댄듃
         setUser(userData);
         setAccessToken(newAccessToken);
 
-        // localStorage에는 사용자 정보만 저장 (UX 개선용)
+        // localStorage?먮뒗 ?ъ슜???뺣낫留????(UX 媛쒖꽑??
         localStorage.setItem('user', JSON.stringify(userData));
 
-        console.log('Access Token 갱신 성공');
+        console.log('Access Token 媛깆떊 ?깃났');
 
-        // 새로운 accessToken 반환
+        // ?덈줈??accessToken 諛섑솚
         return newAccessToken;
       } else {
-        // 토큰 갱신 실패: 에러 throw
-        throw new Error(response.data.message || '토큰 갱신에 실패했습니다.');
+        // ?좏겙 媛깆떊 ?ㅽ뙣: ?먮윭 throw
+        throw new Error(response.data.message || '?좏겙 媛깆떊???ㅽ뙣?덉뒿?덈떎.');
       }
     } catch (error) {
-      // Refresh Token도 만료된 경우 로그아웃 처리
-      console.error('=== /api/refresh 요청 실패 ===');
-      console.error('에러 상태 코드:', error.response?.status);
-      console.error('에러 메시지:', error.response?.data);
-      console.error('에러 헤더:', error.response?.headers);
-      console.error('전체 에러:', error);
+      // Refresh Token??留뚮즺??寃쎌슦 濡쒓렇?꾩썐 泥섎━
+      console.error('=== /api/refresh ?붿껌 ?ㅽ뙣 ===');
+      console.error('?먮윭 ?곹깭 肄붾뱶:', error.response?.status);
+      console.error('?먮윭 硫붿떆吏:', error.response?.data);
+      console.error('?먮윭 ?ㅻ뜑:', error.response?.headers);
+      console.error('?꾩껜 ?먮윭:', error);
 
-      // 상태 초기화
+      // ?곹깭 珥덇린??
       setUser(null);
       setAccessToken(null);
 
-      // localStorage 정리
+      // localStorage ?뺣━
       localStorage.removeItem('user');
 
-      // 에러를 throw하여 호출한 쪽에서 처리할 수 있도록 함
+      // ?먮윭瑜?throw?섏뿬 ?몄텧??履쎌뿉??泥섎━?????덈룄濡???
       throw error;
     }
   };
 
-  // Context에 제공할 값
-  // 하위 컴포넌트들은 이 값들을 useAuth() 훅을 통해 사용할 수 있습니다.
+  // Context???쒓났??媛?
+  // ?섏쐞 而댄룷?뚰듃?ㅼ? ??媛믩뱾??useAuth() ?낆쓣 ?듯빐 ?ъ슜?????덉뒿?덈떎.
   const value = {
-    user,                // 현재 로그인한 사용자 정보
-    accessToken,         // 현재 accessToken
-    isLoading,           // 로딩 상태
-    login,               // 로그인 함수
-    logout,              // 로그아웃 함수
+    user,                // ?꾩옱 濡쒓렇?명븳 ?ъ슜???뺣낫
+    accessToken,         // ?꾩옱 accessToken
+    isLoading,           // 濡쒕뵫 ?곹깭
+    login,               // 濡쒓렇???⑥닔
+    logout,              // 濡쒓렇?꾩썐 ?⑥닔
     updateToken,         // 토큰 갱신 함수
-    refreshAccessToken,  // Refresh Token으로 Access Token 갱신 함수
-    isAuthenticated: !!user  // 로그인 여부 (user가 있으면 true)
+    updateUser,          // 사용자 정보 갱신 함수
+    refreshAccessToken,  // Refresh Token?쇰줈 Access Token 媛깆떊 ?⑥닔
+    isAuthenticated: !!user  // 濡쒓렇???щ? (user媛 ?덉쑝硫?true)
   };
 
   /**
-   * AuthContext.Provider를 사용하여 인증 정보를 하위 컴포넌트에 제공
+   * AuthContext.Provider瑜??ъ슜?섏뿬 ?몄쬆 ?뺣낫瑜??섏쐞 而댄룷?뚰듃???쒓났
    *
-   * Context API의 동작 원리:
-   * 1. Provider 컴포넌트가 value prop을 통해 데이터를 제공
-   * 2. 하위 컴포넌트에서 useAuth() 훅을 사용하여 이 데이터에 접근
-   * 3. value가 변경되면 이를 사용하는 모든 컴포넌트가 자동으로 리렌더링
+   * Context API???숈옉 ?먮━:
+   * 1. Provider 而댄룷?뚰듃媛 value prop???듯빐 ?곗씠?곕? ?쒓났
+   * 2. ?섏쐞 而댄룷?뚰듃?먯꽌 useAuth() ?낆쓣 ?ъ슜?섏뿬 ???곗씠?곗뿉 ?묎렐
+   * 3. value媛 蹂寃쎈릺硫??대? ?ъ슜?섎뒗 紐⑤뱺 而댄룷?뚰듃媛 ?먮룞?쇰줈 由щ젋?붾쭅
    *
-   * 예시:
-   * - App.jsx에서 <AuthProvider>로 전체 앱을 감쌈
-   * - Login.jsx에서 useAuth()를 호출하면 여기서 제공하는 value를 받음
-   * - login() 함수를 호출하면 user, accessToken 상태가 변경됨
-   * - 이 변경사항이 자동으로 Gnb.jsx 등 모든 하위 컴포넌트에 반영됨
+   * ?덉떆:
+   * - App.jsx?먯꽌 <AuthProvider>濡??꾩껜 ?깆쓣 媛먯뙂
+   * - Login.jsx?먯꽌 useAuth()瑜??몄텧?섎㈃ ?ш린???쒓났?섎뒗 value瑜?諛쏆쓬
+   * - login() ?⑥닔瑜??몄텧?섎㈃ user, accessToken ?곹깭媛 蹂寃쎈맖
+   * - ??蹂寃쎌궗??씠 ?먮룞?쇰줈 Gnb.jsx ??紐⑤뱺 ?섏쐞 而댄룷?뚰듃??諛섏쁺??
    *
    * {children}:
-   * - AuthProvider로 감싼 모든 하위 컴포넌트를 의미
-   * - App.jsx에서는 <BrowserRouter>, <Routes> 등이 children에 해당
-   * - 이 children들이 모두 인증 정보에 접근할 수 있게 됨
+   * - AuthProvider濡?媛먯떬 紐⑤뱺 ?섏쐞 而댄룷?뚰듃瑜??섎?
+   * - App.jsx?먯꽌??<BrowserRouter>, <Routes> ?깆씠 children???대떦
+   * - ??children?ㅼ씠 紐⑤몢 ?몄쬆 ?뺣낫???묎렐?????덇쾶 ??
    */
   return (
     <AuthContext.Provider value={value}>
@@ -315,3 +335,4 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+

@@ -19,7 +19,7 @@ import {
  * @param {string} accessToken - JWT 액세스 토큰
  * @returns {Object} 프로필 폼 관련 상태 및 함수
  */
-export function useProfileForm(accessToken) {
+export function useProfileForm(accessToken, onProfileUpdated) {
   // ==========================================
   // 상태 정의
   // ==========================================
@@ -259,6 +259,11 @@ export function useProfileForm(accessToken) {
         bgImage: bgImageUrl || null
       };
 
+      const profileImageForUi =
+        selectedFile && requestData.profileImage
+          ? `${requestData.profileImage}${requestData.profileImage.includes('?') ? '&' : '?'}v=${Date.now()}`
+          : requestData.profileImage;
+
       // API 엔드포인트를 config에서 가져옴
       const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.profile}`;
       const response = await axios.put(url, requestData, {
@@ -269,7 +274,26 @@ export function useProfileForm(accessToken) {
         withCredentials: true
       });
 
-      return response.data?.success || response.status === 200;
+      const isSuccess = response.data?.success || response.status === 200;
+
+      if (isSuccess && typeof onProfileUpdated === 'function') {
+        const responseProfile = response.data?.data ?? {};
+
+        onProfileUpdated({
+          name: responseProfile.name ?? requestData.name,
+          profileImage: responseProfile.profileImage ?? profileImageForUi,
+          firstName: responseProfile.firstName ?? requestData.firstName,
+          lastName: responseProfile.lastName ?? requestData.lastName,
+          phoneNumber: responseProfile.phoneNumber ?? requestData.phoneNumber,
+          country: responseProfile.country ?? requestData.country,
+          address1: responseProfile.address1 ?? requestData.address1,
+          address2: responseProfile.address2 ?? requestData.address2,
+          birth: responseProfile.birth ?? requestData.birth,
+          bgImage: responseProfile.bgImage ?? requestData.bgImage
+        });
+      }
+
+      return isSuccess;
     } catch (error) {
       console.error('프로필 수정 실패:', error);
       throw error;

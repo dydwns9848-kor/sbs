@@ -17,7 +17,7 @@ import './Profile.css';
  */
 function Profile() {
   const navigate = useNavigate();
-  const { isAuthenticated, accessToken } = useAuth();
+  const { isAuthenticated, accessToken, user, updateUser } = useAuth();
 
   // 프로필 폼 관련 상태 및 로직 (커스텀 훅 사용)
   const {
@@ -30,7 +30,12 @@ function Profile() {
     handleChange,
     handleImageSelect,
     submitProfile
-  } = useProfileForm(accessToken);
+  } = useProfileForm(accessToken, (updatedProfile) => {
+    updateUser((prevUser) => ({
+      ...(prevUser || user || {}),
+      ...updatedProfile
+    }));
+  });
 
   // ==========================================
   // 이벤트 핸들러
