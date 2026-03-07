@@ -8,6 +8,7 @@ import Profile from './pages/Profile'
 import PostList from './pages/PostList'
 import PostCreate from './pages/PostCreate'
 import PostDetail from './pages/PostDetail'
+import Feed from './pages/Feed'
 import { AuthProvider } from './contexts/AuthProvider'
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path='/oauth/callback' element={<OAuthCallback />}/>
             {/* 프로필 수정 페이지 */}
             <Route path='/profile' element={<Profile />}/>
+            <Route path='/feed' element={<Feed />}/>
             {/* 게시글 관련 페이지 */}
             <Route path='/posts' element={<PostList />}/>
             <Route path='/posts/create' element={<PostCreate />}/>

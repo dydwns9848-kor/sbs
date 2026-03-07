@@ -38,6 +38,15 @@ export const API_CONFIG = {
     postsWithImages: '/posts/with-images',
     myPosts: '/posts/me',
 
+    // 피드
+    feed: {
+      home: '/feed',
+      explore: '/feed/explore',
+      popular: '/feed/popular',
+      views: '/feed/views',
+      recommended: '/feed/recommended',
+    },
+
     // OAuth (카카오) - /api/auth 경로를 통해 백엔드로 프록시
     kakaoLogin: '/auth/kakao/login',
     kakaoCallback: '/auth/kakao/callback',

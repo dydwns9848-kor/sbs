@@ -60,6 +60,9 @@ function GNB() {
             <Link to="/" className={`gnb-link ${location.pathname === '/' ? 'active' : ''}`}>
               HOME
             </Link>
+            <Link to="/feed" className={`gnb-link ${location.pathname.startsWith('/feed') ? 'active' : ''}`}>
+              피드
+            </Link>
             <Link to="/posts" className={`gnb-link ${location.pathname.startsWith('/posts') ? 'active' : ''}`}>
               게시글
             </Link>
