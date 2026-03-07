@@ -25,7 +25,7 @@ export function useComments(postId, accessToken) {
     try {
       const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${postId}/comments?page=0&size=50`;
       const response = await axios.get(url, {
-        headers,
+        headers: buildHeaders(),
         withCredentials: true,
       });
 
@@ -44,7 +44,7 @@ export function useComments(postId, accessToken) {
     try {
       const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.comments}/${commentId}/replies`;
       const response = await axios.get(url, {
-        headers,
+        headers: buildHeaders(),
         withCredentials: true,
       });
       const data = response.data?.data || response.data || [];
@@ -67,7 +67,7 @@ export function useComments(postId, accessToken) {
       setComments(prev => [created, ...prev]);
     }
     return created;
-  }, [accessToken, headers, postId]);
+  }, [postId, buildHeaders]);
 
   const createReply = useCallback(async (commentId, content) => {
     const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.comments}/${commentId}/replies`;
@@ -83,7 +83,7 @@ export function useComments(postId, accessToken) {
       }));
     }
     return created;
-  }, [accessToken, headers]);
+  }, [buildHeaders]);
 
   const updateComment = useCallback(async (commentId, content) => {
     const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.comments}/${commentId}`;
@@ -96,7 +96,7 @@ export function useComments(postId, accessToken) {
       setComments(prev => prev.map(comment => comment.id === commentId ? updated : comment));
     }
     return updated;
-  }, [accessToken, headers]);
+  }, [buildHeaders]);
 
   const deleteComment = useCallback(async (commentId) => {
     const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.comments}/${commentId}`;
@@ -110,7 +110,7 @@ export function useComments(postId, accessToken) {
       delete copy[commentId];
       return copy;
     });
-  }, [accessToken, headers]);
+  }, [buildHeaders]);
 
   useEffect(() => {
     fetchComments();
