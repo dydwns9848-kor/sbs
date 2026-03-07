@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '../config';
+import { getViewCount, withViewCount } from '../utils/viewCount';
 
 /**
  * usePosts 커스텀 훅
@@ -178,10 +179,8 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
     setPosts(prev =>
       prev.map(post => {
         if (post.id !== postId) return post;
-        return {
-          ...post,
-          viewCount: (post.viewCount || 0) + 1,
-        };
+        const nextCount = getViewCount(post) + 1;
+        return withViewCount(post, nextCount);
       })
     );
   };

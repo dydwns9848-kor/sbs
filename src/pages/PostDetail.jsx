@@ -6,6 +6,7 @@ import GNB from '../components/Gnb';
 import Footer from '../components/Footer';
 import { useAuth } from '../hooks/useAuth';
 import { API_CONFIG } from '../config';
+import { getViewCount } from '../utils/viewCount';
 import './PostDetail.css';
 
 /**
@@ -256,7 +257,7 @@ function PostDetail() {
                 {isLikeLoading ? '처리 중...' : `♥ ${post.likeCount || 0}`}
               </button>
               <span className="post-detail-stat">💬 {post.commentCount || 0}</span>
-              <span className="post-detail-stat">👁 {post.viewCount || 0}</span>
+              <span className="post-detail-stat">👁 {getViewCount(post)}</span>
             </div>
 
             {/* 공개 범위 표시 */}

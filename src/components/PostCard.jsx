@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 
+import { getViewCount } from '../utils/viewCount';
+
 /**
  * PostCard 컴포넌트
  *
@@ -16,6 +18,7 @@ function PostCard({
   onViewed,
 }) {
   const liked = Boolean(post?.liked ?? post?.isLiked ?? false);
+  const displayViewCount = getViewCount(post);
 
   // 작성 시간을 "몇 분 전" 형태로 변환
   const formatTime = (dateString) => {
@@ -107,7 +110,7 @@ function PostCard({
           {isLikeLoading ? '처리 중...' : `♥ ${post.likeCount || 0}`}
         </button>
         <span className="post-card-stat">💬 {post.commentCount || 0}</span>
-        <span className="post-card-stat">👁 {post.viewCount || 0}</span>
+        <span className="post-card-stat">👁 {displayViewCount}</span>
       </div>
     </Link>
   );

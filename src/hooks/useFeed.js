@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '../config';
+import { getViewCount, withViewCount } from '../utils/viewCount';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -73,10 +74,8 @@ export function useFeed(accessToken) {
   const markPostViewed = useCallback((postId) => {
     updatePost(postId, prev => {
       if (!prev) return prev;
-      return {
-        ...prev,
-        viewCount: (prev.viewCount || 0) + 1,
-      };
+      const nextCount = getViewCount(prev) + 1;
+      return withViewCount(prev, nextCount);
     });
   }, [updatePost]);
 
