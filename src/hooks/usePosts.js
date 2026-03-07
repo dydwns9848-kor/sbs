@@ -27,6 +27,49 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
   const [error, setError] = useState(null);         // 에러 상태
   const [likeLoadingIds, setLikeLoadingIds] = useState([]); // 좋아요 처리 중인 게시글 ID 목록
 
+  const fetchViewCountsForPosts = useCallback(async (postList) => {
+    if (!postList || postList.length === 0) {
+      return;
+    }
+
+    const headers = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    const requests = postList.map(post => {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${post.id}`;
+      return axios.get(url, {
+        headers,
+        withCredentials: true,
+      }).then(res => res.data?.data || res.data)
+        .catch(() => null);
+    });
+
+    const results = await Promise.allSettled(requests);
+    const viewCounts = new Map();
+
+    results.forEach(result => {
+      if (result.status !== 'fulfilled') return;
+      const detail = result.value;
+      if (!detail || !detail.id) return;
+      viewCounts.set(detail.id, getViewCount(detail));
+    });
+
+    if (viewCounts.size === 0) {
+      return;
+    }
+
+    setPosts(prev =>
+      prev.map(post => {
+        if (!viewCounts.has(post.id)) return post;
+        const nextCount = viewCounts.get(post.id);
+        rememberViewCount(post.id, nextCount);
+        return withViewCount(post, nextCount);
+      })
+    );
+  }, [accessToken]);
+
   // ==========================================
   // 게시글 목록 조회
   // ==========================================
@@ -67,6 +110,7 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
           ? response.data.data
           : response.data.data.content || [];
         setPosts(applyCachedViewCounts(postData));
+        fetchViewCountsForPosts(postData);
       } else {
         setPosts([]);
       }

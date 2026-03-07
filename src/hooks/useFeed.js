@@ -20,6 +20,45 @@ export function useFeed(accessToken) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const fetchViewCountsForPosts = useCallback(async (postList) => {
+    if (!postList || postList.length === 0) return;
+
+    const headers = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    const requests = postList.map(post => {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${post.id}`;
+      return axios.get(url, {
+        headers,
+        withCredentials: true,
+      }).then(res => res.data?.data || res.data)
+        .catch(() => null);
+    });
+
+    const results = await Promise.allSettled(requests);
+    const viewCounts = new Map();
+
+    results.forEach((result) => {
+      if (result.status !== 'fulfilled') return;
+      const detail = result.value;
+      if (!detail || !detail.id) return;
+      viewCounts.set(detail.id, getViewCount(detail));
+    });
+
+    if (viewCounts.size === 0) return;
+
+    setPosts(prev =>
+      prev.map(post => {
+        if (!viewCounts.has(post.id)) return post;
+        const nextCount = viewCounts.get(post.id);
+        rememberViewCount(post.id, nextCount);
+        return withViewCount(post, nextCount);
+      })
+    );
+  }, [accessToken]);
+
   const fetchFeed = useCallback(async ({ feedType, page = 0, size = DEFAULT_PAGE_SIZE, includeMyPosts = false }) => {
     setIsLoading(true);
     setError(null);
@@ -53,6 +92,7 @@ export function useFeed(accessToken) {
       const data = response.data?.data;
       const feedPosts = Array.isArray(data?.content) ? data.content : [];
       setPosts(applyCachedViewCounts(feedPosts));
+      fetchViewCountsForPosts(feedPosts);
       setPagination({
         totalElements: data?.totalElements || 0,
         totalPages: data?.totalPages || 0,
