@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth';
 import { API_CONFIG } from '../config';
 import { getViewCount, rememberViewCount } from '../utils/viewCount';
 import './PostDetail.css';
+import CommentSection from '../components/CommentSection';
 
 /**
  * PostDetail 컴포넌트
@@ -275,6 +276,7 @@ function PostDetail() {
             </div>
           </div>
         ) : null}
+        {post && <CommentSection postId={post.id} />}
       </div>
       <Footer />
     </>

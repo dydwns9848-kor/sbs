@@ -47,6 +47,9 @@ export const API_CONFIG = {
       recommended: '/feed/recommended',
     },
 
+    // 댓글
+    commentPosts: '/posts',
+    comments: '/comments',
     // 피드
     feed: {
       home: '/feed',
