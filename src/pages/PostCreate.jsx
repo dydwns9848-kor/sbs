@@ -1,26 +1,26 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 
 import GNB from '../components/Gnb';
 import Footer from '../components/Footer';
 import { useAuth } from '../hooks/useAuth';
 import { usePostForm } from '../hooks/usePostForm';
-import { FORM_CONFIG } from '../config';
+import { FORM_CONFIG, UPLOAD_CONFIG } from '../config';
 import './PostCreate.css';
 
 /**
- * PostCreate 컴포넌트
+ * PostCreate 而댄룷?뚰듃
  *
- * 게시글 작성 페이지입니다.
- * - 게시글 내용 입력 (textarea)
- * - 공개 범위 선택 (PUBLIC, PRIVATE, FOLLOWERS)
- * - 이미지 첨부 (다중 선택 가능)
- * - 이미지 미리보기 및 개별 삭제
+ * 寃뚯떆湲 ?묒꽦 ?섏씠吏?낅땲??
+ * - 寃뚯떆湲 ?댁슜 ?낅젰 (textarea)
+ * - 怨듦컻 踰붿쐞 ?좏깮 (PUBLIC, PRIVATE, FOLLOWERS)
+ * - ?대?吏 泥⑤? (?ㅼ쨷 ?좏깮 媛??
+ * - ?대?吏 誘몃━蹂닿린 諛?媛쒕퀎 ??젣
  */
 function PostCreate() {
   const navigate = useNavigate();
   const { accessToken, isAuthenticated } = useAuth();
 
-  // 게시글 작성 폼 커스텀 훅
+  // 寃뚯떆湲 ?묒꽦 ??而ㅼ뒪? ??
   const {
     content,
     visibility,
@@ -36,36 +36,43 @@ function PostCreate() {
   } = usePostForm(accessToken);
 
   /**
-   * 폼 제출 핸들러
-   * 게시글 작성 API 호출 후 성공하면 목록 페이지로 이동합니다.
+   * ???쒖텧 ?몃뱾??
+   * 寃뚯떆湲 ?묒꽦 API ?몄텧 ???깃났?섎㈃ 紐⑸줉 ?섏씠吏濡??대룞?⑸땲??
    */
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const success = await submitPost();
       if (success) {
-        alert('게시글이 작성되었습니다!');
+        alert('게시글이 작성되었습니다.');
         navigate('/posts');
       }
     } catch (err) {
-      alert('게시글 작성에 실패했습니다. 다시 시도해주세요.');
+      const status = err?.response?.status;
+      if (status === 413) {
+        alert('이미지 용량이 너무 큽니다. 더 작은 이미지로 다시 시도해주세요.');
+      } else if (status === 415) {
+        alert('지원하지 않는 이미지 형식입니다. JPG/PNG/WEBP/GIF만 업로드 가능합니다.');
+      } else {
+        alert('게시글 작성에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      }
     }
   };
 
   /**
-   * 이미지 파일 선택 핸들러
-   * input[type=file]의 onChange 이벤트에서 호출됩니다.
+   * ?대?吏 ?뚯씪 ?좏깮 ?몃뱾??
+   * input[type=file]??onChange ?대깽?몄뿉???몄텧?⑸땲??
    */
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       handleImageSelect(e.target.files);
-      // 같은 파일을 다시 선택할 수 있도록 input 값 초기화
+      // 媛숈? ?뚯씪???ㅼ떆 ?좏깮?????덈룄濡?input 媛?珥덇린??
       e.target.value = '';
     }
   };
 
-  // 로그인하지 않은 사용자는 접근 불가
+  // 濡쒓렇?명븯吏 ?딆? ?ъ슜?먮뒗 ?묎렐 遺덇?
   if (!isAuthenticated) {
     return (
       <>
@@ -73,7 +80,7 @@ function PostCreate() {
         <div className="post-create-container">
           <div className="post-create-card">
             <p className="post-create-auth-message">
-              게시글을 작성하려면 로그인이 필요합니다.
+              寃뚯떆湲???묒꽦?섎젮硫?濡쒓렇?몄씠 ?꾩슂?⑸땲??
             </p>
           </div>
         </div>
@@ -87,37 +94,37 @@ function PostCreate() {
       <GNB />
       <div className="post-create-container">
         <div className="post-create-card">
-          <h1>새 게시글 작성</h1>
+          <h1>??寃뚯떆湲 ?묒꽦</h1>
 
           <form onSubmit={handleSubmit}>
-            {/* 게시글 내용 입력 */}
+            {/* 寃뚯떆湲 ?댁슜 ?낅젰 */}
             <div className="form-group">
-              <label htmlFor="content">내용</label>
+              <label htmlFor="content">?댁슜</label>
               <textarea
                 id="content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="무슨 이야기를 나누고 싶으신가요?"
+                placeholder="臾댁뒯 ?댁빞湲곕? ?섎늻怨??띠쑝?좉???"
                 rows={6}
                 maxLength={5000}
                 className={errors.content ? 'error' : ''}
               />
-              {/* 글자 수 표시 */}
+              {/* 湲?????쒖떆 */}
               <div className="char-count">
                 <span className={content.length > 4500 ? 'warning' : ''}>
                   {content.length}
                 </span>
                 / 5000
               </div>
-              {/* 유효성 에러 메시지 */}
+              {/* ?좏슚???먮윭 硫붿떆吏 */}
               {errors.content && (
                 <p className="error-message">{errors.content}</p>
               )}
             </div>
 
-            {/* 공개 범위 선택 */}
+            {/* 怨듦컻 踰붿쐞 ?좏깮 */}
             <div className="form-group">
-              <label htmlFor="visibility">공개 범위</label>
+              <label htmlFor="visibility">怨듦컻 踰붿쐞</label>
               <select
                 id="visibility"
                 value={visibility}
@@ -131,56 +138,56 @@ function PostCreate() {
               </select>
             </div>
 
-            {/* 이미지 첨부 */}
+            {/* ?대?吏 泥⑤? */}
             <div className="form-group">
-              <label>이미지 첨부</label>
+              <label>?대?吏 泥⑤?</label>
               <label className="image-upload-button" htmlFor="image-input">
-                📷 사진 추가
+                ?벜 ?ъ쭊 異붽?
               </label>
               <input
                 id="image-input"
                 type="file"
-                accept="image/*"
+                accept={UPLOAD_CONFIG.allowedImageTypes.join(',')}
                 multiple
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
               />
             </div>
 
-            {/* 이미지 미리보기 목록 */}
+            {/* ?대?吏 誘몃━蹂닿린 紐⑸줉 */}
             {previewImages.length > 0 && (
               <div className="image-preview-list">
                 {previewImages.map((src, index) => (
                   <div key={index} className="image-preview-item">
-                    <img src={src} alt={`미리보기 ${index + 1}`} />
-                    {/* 이미지 제거 버튼 */}
+                    <img src={src} alt={`誘몃━蹂닿린 ${index + 1}`} />
+                    {/* ?대?吏 ?쒓굅 踰꾪듉 */}
                     <button
                       type="button"
                       className="image-remove-button"
                       onClick={() => removeImage(index)}
                     >
-                      ✕
+                      ??
                     </button>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* 하단 버튼 영역 */}
+            {/* ?섎떒 踰꾪듉 ?곸뿭 */}
             <div className="post-create-actions">
               <button
                 type="button"
                 className="cancel-button"
                 onClick={() => navigate('/posts')}
               >
-                취소
+                痍⑥냼
               </button>
               <button
                 type="submit"
                 className="submit-button"
                 disabled={isLoading}
               >
-                {isLoading ? '작성 중...' : '게시하기'}
+                {isLoading ? '?묒꽦 以?..' : '寃뚯떆?섍린'}
               </button>
             </div>
           </form>
@@ -192,3 +199,4 @@ function PostCreate() {
 }
 
 export default PostCreate;
+

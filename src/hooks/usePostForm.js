@@ -41,11 +41,22 @@ export function usePostForm(accessToken) {
    */
   const handleImageSelect = (files) => {
     const fileArray = Array.from(files);
+    const allowedTypes = new Set(
+      UPLOAD_CONFIG.allowedImageTypes.map((type) => type.toLowerCase())
+    );
 
     // 각 파일 유효성 검사
     for (const file of fileArray) {
-      if (!file.type.startsWith('image/')) {
-        alert(VALIDATION_MESSAGES.image.invalidType);
+      const fileType = (file.type || '').toLowerCase();
+
+      if (fileType === 'image/heic' || fileType === 'image/heif') {
+        alert('HEIC/HEIF 이미지는 지원되지 않습니다. JPG 또는 PNG로 선택해주세요.');
+        return;
+      }
+
+      if (!allowedTypes.has(fileType)) {
+        const allowed = UPLOAD_CONFIG.allowedImageTypes.join(', ');
+        alert(`${VALIDATION_MESSAGES.image.invalidType}\n허용 형식: ${allowed}`);
         return;
       }
       if (file.size > UPLOAD_CONFIG.maxBackgroundImageSize) {
