@@ -6,7 +6,7 @@ import GNB from '../components/Gnb';
 import Footer from '../components/Footer';
 import { useAuth } from '../hooks/useAuth';
 import { API_CONFIG } from '../config';
-import { getViewCount } from '../utils/viewCount';
+import { getViewCount, rememberViewCount } from '../utils/viewCount';
 import './PostDetail.css';
 
 /**
@@ -55,10 +55,10 @@ function PostDetail() {
       console.log('게시글 상세 조회 응답:', response.data);
 
       // 응답 데이터에서 게시글 추출
-      if (response.data?.data) {
-        setPost(response.data.data);
-      } else {
-        setPost(response.data);
+      const responsePost = response.data?.data || response.data;
+      setPost(responsePost);
+      if (responsePost) {
+        rememberViewCount(responsePost.id, getViewCount(responsePost));
       }
     } catch (err) {
       console.error('게시글 상세 조회 실패:', err);
