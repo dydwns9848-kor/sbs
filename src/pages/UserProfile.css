@@ -64,6 +64,22 @@
   font-weight: 700;
 }
 
+.user-profile-edit-btn {
+  margin-left: auto;
+  border: 1px solid rgba(76, 255, 202, 0.45);
+  background: rgba(76, 255, 202, 0.1);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.38rem 0.88rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.user-profile-edit-btn:hover {
+  border-color: rgba(76, 255, 202, 0.7);
+  background: rgba(76, 255, 202, 0.16);
+}
+
 .user-profile-follow-btn.following {
   border-color: rgba(76, 255, 202, 0.5);
   background: rgba(76, 255, 202, 0.1);
@@ -136,6 +152,10 @@
   }
 
   .user-profile-follow-btn {
+    margin-left: 0;
+  }
+
+  .user-profile-edit-btn {
     margin-left: 0;
   }
 }

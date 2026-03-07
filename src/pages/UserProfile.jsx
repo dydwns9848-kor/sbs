@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 
@@ -29,7 +29,7 @@ async function tryFetchUserPosts(authorId, accessToken) {
         withCredentials,
       });
       const data = response.data?.data ?? response.data;
-      const posts = Array.isArray(data) ? data : (data?.content || []);
+      const posts = Array.isArray(data) ? data : data?.content || [];
       if (!Array.isArray(posts)) continue;
 
       const filtered = posts.filter((p) => {
@@ -37,11 +37,10 @@ async function tryFetchUserPosts(authorId, accessToken) {
         return Number(pid) === Number(authorId);
       });
 
-      // 일부 API는 이미 userId 필터가 서버에서 적용되어서 빈 필터가 나올 수 있어 그대로 사용
       if (filtered.length > 0) return filtered;
       if (req.params?.userId) return posts;
     } catch (err) {
-      // 다음 후보 API 시도
+      // 다음 API 시도
     }
   }
 
@@ -85,6 +84,13 @@ function UserProfile() {
       setIsFollowing(Boolean(following));
       setPosts(userPosts);
 
+      if (isOwner && user) {
+        setProfile((prev) => ({
+          name: user?.name || prev.name,
+          profileImage: user?.profileImage || prev.profileImage,
+        }));
+      }
+
       if (userPosts.length > 0) {
         const first = userPosts[0];
         const inferredName = first?.author?.name || first?.userName;
@@ -99,15 +105,16 @@ function UserProfile() {
     } finally {
       setIsLoading(false);
     }
-  }, [authorId, getFollowCounts, checkFollowing, isAuthenticated, isOwner, accessToken]);
+  }, [authorId, getFollowCounts, checkFollowing, isAuthenticated, isOwner, accessToken, user]);
 
   useEffect(() => {
     loadPage();
   }, [loadPage]);
 
-  const thumbnailPosts = useMemo(() => (
-    posts.filter((p) => p?.thumbnailUrl || (p?.images && p.images.length > 0))
-  ), [posts]);
+  const thumbnailPosts = useMemo(
+    () => posts.filter((p) => p?.thumbnailUrl || (p?.images && p.images.length > 0)),
+    [posts]
+  );
 
   const handleFollowToggle = async () => {
     if (!isAuthenticated || !accessToken) {
@@ -141,6 +148,10 @@ function UserProfile() {
     }
   };
 
+  const handleEditProfile = () => {
+    navigate('/profile');
+  };
+
   return (
     <>
       <GNB />
@@ -165,7 +176,11 @@ function UserProfile() {
                 </p>
               </div>
 
-              {!isOwner && (
+              {isOwner ? (
+                <button type="button" className="user-profile-edit-btn" onClick={handleEditProfile}>
+                  프로필 수정
+                </button>
+              ) : (
                 <button
                   type="button"
                   className={`user-profile-follow-btn ${isFollowing ? 'following' : ''}`}
@@ -178,9 +193,7 @@ function UserProfile() {
             </section>
 
             <section className="user-profile-grid-section">
-              <div className="user-profile-grid-title">
-                게시글 {posts.length}개
-              </div>
+              <div className="user-profile-grid-title">게시글 {posts.length}개</div>
 
               {thumbnailPosts.length === 0 ? (
                 <div className="user-profile-state">표시할 썸네일 게시글이 없습니다.</div>
