@@ -70,6 +70,16 @@ export function useFeed(accessToken) {
     );
   }, []);
 
+  const markPostViewed = useCallback((postId) => {
+    updatePost(postId, prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        viewCount: (prev.viewCount || 0) + 1,
+      };
+    });
+  }, [updatePost]);
+
   const resetFeed = useCallback(() => {
     setPosts([]);
     setPagination({ totalElements: 0, totalPages: 0, page: 0 });
@@ -84,5 +94,6 @@ export function useFeed(accessToken) {
     fetchFeed,
     updatePost,
     resetFeed,
+    markPostViewed,
   };
 }

@@ -174,6 +174,18 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
     }
   };
 
+  const markPostViewed = (postId) => {
+    setPosts(prev =>
+      prev.map(post => {
+        if (post.id !== postId) return post;
+        return {
+          ...post,
+          viewCount: (post.viewCount || 0) + 1,
+        };
+      })
+    );
+  };
+
   // ==========================================
   // 반환값
   // ==========================================
@@ -185,5 +197,6 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
     deletePost,
     togglePostLike,
     likeLoadingIds,
+    markPostViewed,
   };
 }

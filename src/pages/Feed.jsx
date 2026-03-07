@@ -29,6 +29,7 @@ function Feed() {
     fetchFeed,
     updatePost,
     resetFeed,
+    markPostViewed,
   } = useFeed(accessToken);
 
   const [activeTab, setActiveTab] = useState('home');
@@ -214,6 +215,7 @@ function Feed() {
                 isAuthenticated={isAuthenticated}
                 onToggleLike={handleToggleLike}
                 isLikeLoading={likeLoadingIds.includes(post.id)}
+                onViewed={markPostViewed}
               />
             ))
           )}

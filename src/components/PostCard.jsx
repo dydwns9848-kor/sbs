@@ -8,7 +8,13 @@ import { Link } from 'react-router-dom';
  *
  * @param {Object} props.post - 게시글 데이터 (PostListResponse 또는 PostResponse)
  */
-function PostCard({ post, isAuthenticated, onToggleLike, isLikeLoading = false }) {
+function PostCard({
+  post,
+  isAuthenticated,
+  onToggleLike,
+  isLikeLoading = false,
+  onViewed,
+}) {
   const liked = Boolean(post?.liked ?? post?.isLiked ?? false);
 
   // 작성 시간을 "몇 분 전" 형태로 변환
@@ -45,8 +51,14 @@ function PostCard({ post, isAuthenticated, onToggleLike, isLikeLoading = false }
     await onToggleLike(post.id);
   };
 
+  const handleCardClick = () => {
+    if (onViewed) {
+      onViewed(post.id);
+    }
+  };
+
   return (
-    <Link to={`/posts/${post.id}`} className="post-card">
+    <Link to={`/posts/${post.id}`} className="post-card" onClick={handleCardClick}>
       {/* 작성자 정보 헤더 */}
       <div className="post-card-header">
         <div className="post-card-author">
