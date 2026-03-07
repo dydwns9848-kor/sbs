@@ -59,8 +59,38 @@
   color: var(--text-muted);
 }
 
+.post-detail-follow-meta {
+  display: inline-block;
+  margin-top: 0.16rem;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
 .post-detail-actions {
   display: flex;
+}
+
+.follow-button {
+  border: 1px solid var(--line-strong);
+  background: rgba(127, 230, 255, 0.12);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.follow-button:hover:not(:disabled) {
+  background: rgba(127, 230, 255, 0.2);
+}
+
+.follow-button.following {
+  border-color: rgba(76, 255, 202, 0.5);
+  background: rgba(76, 255, 202, 0.1);
+}
+
+.follow-button:disabled {
+  opacity: 0.65;
 }
 
 .delete-button {
