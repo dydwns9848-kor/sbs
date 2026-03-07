@@ -91,6 +91,23 @@ function PostDetail() {
     )
   );
 
+  const syncFollowMeta = useCallback(async () => {
+    if (!authorId) return;
+
+    const counts = await getFollowCounts(authorId);
+    setFollowCounts({
+      followerCount: counts.followerCount || 0,
+      followingCount: counts.followingCount || 0,
+    });
+
+    if (isAuthenticated && !isOwner) {
+      const following = await checkFollowing(authorId);
+      setIsFollowing(Boolean(following));
+    } else {
+      setIsFollowing(false);
+    }
+  }, [authorId, getFollowCounts, checkFollowing, isAuthenticated, isOwner]);
+
   useEffect(() => {
     if (!authorId) return;
 
@@ -99,22 +116,7 @@ function PostDetail() {
     const fetchFollowMeta = async () => {
       setIsFollowLoading(true);
       try {
-        const counts = await getFollowCounts(authorId);
-        if (!cancelled && counts) {
-          setFollowCounts({
-            followerCount: counts.followerCount || 0,
-            followingCount: counts.followingCount || 0,
-          });
-        }
-
-        if (isAuthenticated && !isOwner) {
-          const following = await checkFollowing(authorId);
-          if (!cancelled) {
-            setIsFollowing(Boolean(following));
-          }
-        } else if (!cancelled) {
-          setIsFollowing(false);
-        }
+        await syncFollowMeta();
       } catch (err) {
         console.error('팔로우 정보 조회 실패:', err);
       } finally {
@@ -129,7 +131,7 @@ function PostDetail() {
     return () => {
       cancelled = true;
     };
-  }, [authorId, getFollowCounts, checkFollowing, isAuthenticated, isOwner]);
+  }, [authorId, syncFollowMeta]);
 
   const handleDelete = async () => {
     if (!window.confirm('게시글을 삭제하시겠습니까?')) return;
@@ -234,7 +236,11 @@ function PostDetail() {
         : await follow(authorId);
 
       if (response) {
-        setIsFollowing(Boolean(response.following));
+        const responseFollowing =
+          typeof response.following === 'boolean'
+            ? response.following
+            : !previousFollowing;
+        setIsFollowing(responseFollowing);
         setFollowCounts((prev) => ({
           followerCount: response.followerCount ?? prev.followerCount,
           followingCount: response.followingCount ?? prev.followingCount,
@@ -242,6 +248,18 @@ function PostDetail() {
       }
     } catch (err) {
       console.error('팔로우 처리 실패:', err);
+      const status = err.response?.status;
+
+      // 이미 팔로우/이미 언팔로우 같은 충돌 케이스는 서버 상태를 재조회해 UI를 복구
+      if (status === 400 || status === 409) {
+        try {
+          await syncFollowMeta();
+          return;
+        } catch (syncErr) {
+          console.error('팔로우 상태 재동기화 실패:', syncErr);
+        }
+      }
+
       setIsFollowing(previousFollowing);
       setFollowCounts((prev) => ({
         ...prev,
