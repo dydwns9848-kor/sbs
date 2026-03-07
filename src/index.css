@@ -7,12 +7,10 @@
   /* 기본 폰트 굵기를 400(normal)으로 설정 */
   font-weight: 400;
 
-  /* 라이트 모드와 다크 모드 모두 지원하도록 색상 스킴 설정 */
-  color-scheme: light dark;
-  /* 기본 텍스트 색상 (흰색에 87% 투명도 적용 - 다크 모드용) */
-  color: rgba(255, 255, 255, 0.87);
-  /* 기본 배경색 (어두운 회색 - 다크 모드용) */
-  background-color: #242424;
+  /* 앱 전체를 다크 테마로 통일 */
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.92);
+  background-color: #121214;
 
   /* 브라우저의 자동 폰트 합성 기능 비활성화 (bold, italic 등) */
   font-synthesis: none;
@@ -93,23 +91,4 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-/* 사용자가 라이트 모드를 선호하는 경우 적용되는 스타일 */
-@media (prefers-color-scheme: light) {
-  /* 라이트 모드용 루트 스타일 재정의 */
-  :root {
-    /* 텍스트 색상을 어두운 네이비 계열로 변경 */
-    color: #213547;
-    /* 배경색을 흰색으로 변경 */
-    background-color: #ffffff;
-  }
-  /* 라이트 모드에서 링크 호버 시 스타일 */
-  a:hover {
-    /* 호버 시 좀 더 밝은 파란 보라색으로 변경 */
-    color: #747bff;
-  }
-  /* 라이트 모드에서 버튼 스타일 */
-  button {
-    /* 버튼 배경색을 매우 밝은 회색으로 변경 */
-    background-color: #f9f9f9;
-  }
-}
+/* 항상 다크 테마 컬러 유지 */
