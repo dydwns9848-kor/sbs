@@ -1,15 +1,13 @@
+﻿import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { useAuth } from '../hooks/useAuth';
+import { useFollow } from '../hooks/useFollow';
 import { getViewCount } from '../utils/viewCount';
+import FollowListModal from './FollowListModal';
 
-/**
- * PostCard 컴포넌트
- *
- * 게시글 목록에서 각 게시글을 카드 형태로 표시합니다.
- * 클릭하면 게시글 상세 페이지로 이동합니다.
- *
- * @param {Object} props.post - 게시글 데이터 (PostListResponse 또는 PostResponse)
- */
+const followCountCache = new Map();
+
 function PostCard({
   post,
   isAuthenticated,
@@ -17,10 +15,60 @@ function PostCard({
   isLikeLoading = false,
   onViewed,
 }) {
+  const { accessToken } = useAuth();
+  const { getFollowCounts } = useFollow(accessToken);
+
+  const [followCounts, setFollowCounts] = useState({ followerCount: 0, followingCount: 0 });
+  const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
+  const [followModalTab, setFollowModalTab] = useState('followers');
+
   const liked = Boolean(post?.liked ?? post?.isLiked ?? false);
   const displayViewCount = getViewCount(post);
 
-  // 작성 시간을 "몇 분 전" 형태로 변환
+  const authorName = post.author?.name || post.userName || '알 수 없음';
+  const authorImage = post.author?.profileImage || post.userProfileImage || null;
+  const authorId = post.author?.id || post.userId || null;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchCounts = async () => {
+      if (!authorId) {
+        setFollowCounts({ followerCount: 0, followingCount: 0 });
+        return;
+      }
+
+      const cached = followCountCache.get(authorId);
+      if (cached) {
+        setFollowCounts(cached);
+        return;
+      }
+
+      try {
+        const counts = await getFollowCounts(authorId);
+        const normalized = {
+          followerCount: Number(counts?.followerCount || 0),
+          followingCount: Number(counts?.followingCount || 0),
+        };
+
+        followCountCache.set(authorId, normalized);
+        if (!cancelled) {
+          setFollowCounts(normalized);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setFollowCounts({ followerCount: 0, followingCount: 0 });
+        }
+      }
+    };
+
+    fetchCounts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authorId, getFollowCounts]);
+
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -37,14 +85,9 @@ function PostCard({
     return date.toLocaleDateString('ko-KR');
   };
 
-  // 게시글 내용 미리보기 (최대 150자)
   const previewContent = post.content?.length > 150
-    ? post.content.substring(0, 150) + '...'
+    ? `${post.content.substring(0, 150)}...`
     : post.content;
-
-  // 작성자 정보 (author 객체 또는 직접 필드)
-  const authorName = post.author?.name || post.userName || '알 수 없음';
-  const authorImage = post.author?.profileImage || post.userProfileImage || null;
 
   const handleLikeClick = async (e) => {
     e.preventDefault();
@@ -60,9 +103,16 @@ function PostCard({
     }
   };
 
+  const handleOpenFollowModal = (e, tab) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFollowModalTab(tab);
+    setIsFollowModalOpen(true);
+  };
+
   return (
-    <Link to={`/posts/${post.id}`} className="post-card" onClick={handleCardClick}>
-      {/* 작성자 정보 헤더 */}
+    <>
+      <Link to={`/posts/${post.id}`} className="post-card" onClick={handleCardClick}>
       <div className="post-card-header">
         <div className="post-card-author">
           {authorImage ? (
@@ -72,24 +122,40 @@ function PostCard({
               {authorName.charAt(0)}
             </div>
           )}
-          <span className="post-card-author-name">{authorName}</span>
+          <div className="post-card-author-info">
+            <span className="post-card-author-name">{authorName}</span>
+            <div className="post-card-follow-meta-actions">
+              <button
+                type="button"
+                className="post-card-follow-meta"
+                onClick={(e) => handleOpenFollowModal(e, 'followers')}
+              >
+                팔로워 {followCounts.followerCount}
+              </button>
+              <span>·</span>
+              <button
+                type="button"
+                className="post-card-follow-meta"
+                onClick={(e) => handleOpenFollowModal(e, 'followings')}
+              >
+                팔로잉 {followCounts.followingCount}
+              </button>
+            </div>
+          </div>
         </div>
         <span className="post-card-time">{formatTime(post.createdAt)}</span>
       </div>
 
-      {/* 게시글 내용 */}
       <div className="post-card-content">
         <p>{previewContent}</p>
       </div>
 
-      {/* 썸네일 이미지 (있는 경우) */}
       {(post.thumbnailUrl || (post.images && post.images.length > 0)) && (
         <div className="post-card-thumbnail">
           <img
             src={post.thumbnailUrl || post.images[0]?.imageUrl || post.images[0]?.thumbnailUrl}
             alt="게시글 이미지"
           />
-          {/* 이미지 개수 표시 (2개 이상인 경우) */}
           {(post.imageCount > 1 || (post.images && post.images.length > 1)) && (
             <span className="post-card-image-count">
               +{(post.imageCount || post.images?.length) - 1}
@@ -98,7 +164,6 @@ function PostCard({
         </div>
       )}
 
-      {/* 하단 통계 (좋아요, 댓글, 조회수) */}
       <div className="post-card-footer">
         <button
           type="button"
@@ -107,12 +172,23 @@ function PostCard({
           disabled={!isAuthenticated || isLikeLoading}
           aria-label={liked ? '좋아요 취소' : '좋아요'}
         >
-          {isLikeLoading ? '처리 중...' : `♥ ${post.likeCount || 0}`}
+          {isLikeLoading ? '처리 중...' : `❤ ${post.likeCount || 0}`}
         </button>
-        <span className="post-card-stat">💬 {post.commentCount || 0}</span>
-        <span className="post-card-stat">👁 {displayViewCount}</span>
+        <span className="post-card-stat">댓글 {post.commentCount || 0}</span>
+        <span className="post-card-stat">조회 {displayViewCount}</span>
       </div>
-    </Link>
+
+      </Link>
+
+      <FollowListModal
+        isOpen={isFollowModalOpen}
+        onClose={() => setIsFollowModalOpen(false)}
+        authorId={authorId}
+        authorName={authorName}
+        initialTab={followModalTab}
+        accessToken={accessToken}
+      />
+    </>
   );
 }
 
