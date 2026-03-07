@@ -27,7 +27,7 @@ export function useFeed(accessToken) {
 
       const params = new URLSearchParams({
         page: page.toString(),
-        size: Math.min(size, 50).toString()
+        size: Math.min(size, 50).toString(),
       });
       if (feedType === 'home' && includeMyPosts) {
         params.set('includeMyPosts', 'true');
@@ -41,7 +41,7 @@ export function useFeed(accessToken) {
 
       const response = await axios.get(url, {
         headers,
-        withCredentials: true
+        withCredentials: true,
       });
 
       const data = response.data?.data;
@@ -72,11 +72,7 @@ export function useFeed(accessToken) {
 
   const resetFeed = useCallback(() => {
     setPosts([]);
-    setPagination({
-      totalElements: 0,
-      totalPages: 0,
-      page: 0,
-    });
+    setPagination({ totalElements: 0, totalPages: 0, page: 0 });
     setError(null);
   }, []);
 

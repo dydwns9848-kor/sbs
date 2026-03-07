@@ -119,6 +119,7 @@ function Feed() {
         headers: { 'Authorization': `Bearer ${accessToken}` },
         withCredentials: true,
       });
+
       const serverData = response.data?.data;
       const serverLiked = serverData?.liked ?? nextLiked;
       const serverLikeCount = serverData?.likeCount ?? optimisticCount;
