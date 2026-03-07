@@ -1,296 +1,208 @@
-/* ==========================================
-   게시글 목록 (피드) 페이지 스타일
-   ==========================================
-   게시글 피드를 카드 형태로 표시하는 페이지입니다.
-   기존 프로젝트의 다크 테마와 글래스모피즘 스타일을 유지합니다.
-*/
-
-/* 게시글 목록 메인 컨테이너 */
-.post-list-container {
-  /* 최대 너비 제한 및 중앙 정렬 */
-  max-width: 700px;
+﻿.post-list-container {
+  max-width: 860px;
   margin: 0 auto;
-  /* GNB와 Footer를 고려한 상하 패딩 */
-  padding: 100px 20px 80px;
-  /* 최소 높이 */
   min-height: 100vh;
-  box-sizing: border-box;
+  padding: 104px 16px 92px;
 }
 
-/* 헤더 영역: 제목 + 작성 버튼 */
 .post-list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
 }
 
 .post-list-header h1 {
-  color: white;
-  font-size: 1.8rem;
-  margin: 0;
+  font-size: clamp(1.45rem, 2vw, 2rem);
 }
 
-/* 새 글 작성 버튼 */
 .post-create-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.52rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #03131d;
+  background: linear-gradient(120deg, var(--brand-cyan), var(--brand-mint));
+  box-shadow: 0 10px 22px rgba(76, 255, 202, 0.26);
 }
 
-.post-create-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-/* ==========================================
-   탭 메뉴 스타일
-   ========================================== */
 .post-tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 0.5rem;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
 }
 
 .post-tab {
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.95rem;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: color 0.2s, background 0.2s;
-}
-
-.post-tab:hover {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* 활성화된 탭 */
-.post-tab.active {
-  color: white;
-  background: rgba(102, 126, 234, 0.3);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.82rem;
   font-weight: 600;
 }
 
-/* ==========================================
-   게시글 카드 목록
-   ========================================== */
-.post-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.post-tab.active {
+  border-color: transparent;
+  color: #03141f;
+  background: linear-gradient(120deg, var(--brand-cyan), var(--brand-mint));
 }
 
-/* 게시글 카드 (PostCard 컴포넌트에서 사용) */
+.post-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
 .post-card {
-  background: rgba(26, 26, 26, 0.8);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: 1.2rem;
-  text-decoration: none;
-  color: white;
   display: block;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: linear-gradient(160deg, rgba(17, 28, 48, 0.9), rgba(10, 17, 32, 0.92));
+  box-shadow: var(--shadow-sm);
+  padding: 1rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .post-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  border-color: rgba(102, 126, 234, 0.3);
+  border-color: var(--line-strong);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.34);
 }
 
-/* 카드 헤더: 작성자 정보 + 시간 */
 .post-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.72rem;
 }
 
 .post-card-author {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 
-/* 작성자 프로필 이미지 */
-.post-card-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-/* 프로필 이미지가 없는 경우 이니셜 표시 */
+.post-card-avatar,
 .post-card-avatar-placeholder {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: white;
+}
+
+.post-card-avatar {
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.post-card-avatar-placeholder {
+  display: grid;
+  place-items: center;
+  color: #041017;
+  font-weight: 700;
+  background: linear-gradient(120deg, var(--brand-cyan), var(--brand-mint));
 }
 
 .post-card-author-name {
-  font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
-/* 작성 시간 */
 .post-card-time {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.8rem;
-}
-
-/* 게시글 내용 미리보기 */
-.post-card-content {
-  margin-bottom: 0.8rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
 .post-card-content p {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(236, 245, 255, 0.9);
+  line-height: 1.58;
+  font-size: 0.94rem;
+  margin-bottom: 0.8rem;
 }
 
-/* 썸네일 이미지 영역 */
 .post-card-thumbnail {
   position: relative;
-  margin-bottom: 0.8rem;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
+  margin-bottom: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .post-card-thumbnail img {
   width: 100%;
-  max-height: 300px;
+  max-height: 360px;
   object-fit: cover;
-  border-radius: 8px;
+  display: block;
 }
 
-/* 추가 이미지 개수 뱃지 */
 .post-card-image-count {
   position: absolute;
-  bottom: 8px;
   right: 8px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
+  bottom: 8px;
+  border: 1px solid var(--line);
+  background: rgba(5, 12, 22, 0.78);
+  color: var(--text);
+  border-radius: 999px;
+  font-size: 0.74rem;
+  padding: 0.15rem 0.56rem;
 }
 
-/* 하단 통계 (좋아요, 댓글, 조회수) */
 .post-card-footer {
   display: flex;
   gap: 1rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 0.68rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.post-card-stat {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.85rem;
+.post-card-stat,
+.post-card-like-button {
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
 
 .post-card-like-button {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.85rem;
   padding: 0;
-  cursor: pointer;
-  transition: color 0.2s;
+  border: 0;
+  background: transparent;
 }
 
-.post-card-like-button:hover:not(:disabled) {
-  color: #ff7b7b;
-}
-
+.post-card-like-button:hover:not(:disabled),
 .post-card-like-button.active {
-  color: #ff7b7b;
+  color: #ff9ab3;
 }
 
-.post-card-like-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-/* ==========================================
-   로딩 / 에러 / 빈 상태
-   ========================================== */
 .post-list-loading,
 .post-list-error,
 .post-list-empty {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
   text-align: center;
-  padding: 3rem 1rem;
-  color: rgba(255, 255, 255, 0.5);
+  padding: 1.2rem;
 }
 
-.post-list-loading p,
-.post-list-error p,
-.post-list-empty p {
-  margin: 0 0 1rem;
-  font-size: 1rem;
-}
-
-/* 다시 시도 버튼 */
 .retry-button {
-  background: rgba(102, 126, 234, 0.3);
-  color: white;
-  border: 1px solid rgba(102, 126, 234, 0.5);
-  padding: 0.5rem 1.2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.3rem 0.75rem;
 }
 
-.retry-button:hover {
-  background: rgba(102, 126, 234, 0.5);
-}
-
-/* 빈 상태에서 게시글 작성 유도 링크 */
 .post-create-link {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.post-create-link:hover {
-  text-decoration: underline;
-}
-
-/* ==========================================
-   반응형 대응
-   ========================================== */
-@media (max-width: 768px) {
+@media (max-width: 720px) {
   .post-list-container {
-    padding: 80px 12px 60px;
+    padding: 96px 10px 86px;
   }
 
-  .post-list-header h1 {
-    font-size: 1.4rem;
-  }
-
-  .post-create-button {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.8rem;
+  .post-card {
+    padding: 0.85rem;
   }
 }

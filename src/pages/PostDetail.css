@@ -1,255 +1,171 @@
-/* ==========================================
-   게시글 상세 페이지 스타일
-   ==========================================
-   게시글의 전체 내용과 이미지를 표시하는 페이지입니다.
-*/
-
-/* 상세 페이지 메인 컨테이너 */
-.post-detail-container {
-  max-width: 700px;
+﻿.post-detail-container {
+  max-width: 860px;
   margin: 0 auto;
-  padding: 100px 20px 80px;
   min-height: 100vh;
-  box-sizing: border-box;
+  padding: 104px 16px 92px;
 }
 
-/* 상세 카드 */
 .post-detail-card {
-  background: rgba(26, 26, 26, 0.8);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: linear-gradient(160deg, rgba(16, 28, 48, 0.9), rgba(10, 18, 33, 0.94));
+  box-shadow: var(--shadow-lg);
+  padding: clamp(1rem, 2.4vw, 1.8rem);
 }
 
-/* ==========================================
-   작성자 정보 헤더
-   ========================================== */
 .post-detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .post-detail-author {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.7rem;
 }
 
-/* 작성자 프로필 이미지 */
-.post-detail-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-/* 프로필 이미지 없을 때 이니셜 */
+.post-detail-avatar,
 .post-detail-avatar-placeholder {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: white;
 }
 
-.post-detail-author-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+.post-detail-avatar {
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.post-detail-avatar-placeholder {
+  display: grid;
+  place-items: center;
+  color: #041017;
+  font-weight: 700;
+  background: linear-gradient(120deg, var(--brand-cyan), var(--brand-mint));
 }
 
 .post-detail-author-name {
-  color: white;
-  font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .post-detail-date {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
-/* ==========================================
-   삭제 버튼
-   ========================================== */
 .post-detail-actions {
   display: flex;
-  gap: 0.5rem;
 }
 
 .delete-button {
-  background: rgba(255, 59, 48, 0.2);
-  color: #ff6b6b;
-  border: 1px solid rgba(255, 59, 48, 0.3);
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background 0.2s;
+  border: 1px solid rgba(255, 111, 142, 0.5);
+  background: rgba(255, 111, 142, 0.15);
+  color: #ffc6d2;
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .delete-button:hover {
-  background: rgba(255, 59, 48, 0.4);
-}
-
-/* ==========================================
-   게시글 본문
-   ========================================== */
-.post-detail-content {
-  margin-bottom: 1.5rem;
+  background: rgba(255, 111, 142, 0.2);
 }
 
 .post-detail-content p {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
-  line-height: 1.8;
-  margin: 0;
-  /* 줄바꿈 유지 */
   white-space: pre-wrap;
-  /* 긴 단어 줄바꿈 */
   word-break: break-word;
+  line-height: 1.75;
+  color: rgba(236, 245, 255, 0.92);
 }
 
-/* ==========================================
-   이미지 갤러리
-   ========================================== */
 .post-detail-images {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  margin-bottom: 1.5rem;
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
 }
 
 .post-detail-image-item {
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .post-detail-image-item img {
   width: 100%;
-  max-height: 500px;
+  max-height: 540px;
   object-fit: contain;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
+  display: block;
+  background: rgba(5, 10, 20, 0.84);
 }
 
-/* ==========================================
-   하단 통계
-   ========================================== */
 .post-detail-stats {
   display: flex;
-  gap: 1.2rem;
-  padding: 1rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 1rem;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  margin-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.post-detail-stat {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.9rem;
+.post-detail-stat,
+.post-detail-like-button,
+.post-detail-visibility {
+  color: var(--text-muted);
+  font-size: 0.84rem;
 }
 
 .post-detail-like-button {
+  border: 0;
   background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.9rem;
   padding: 0;
-  cursor: pointer;
-  transition: color 0.2s;
 }
 
-.post-detail-like-button:hover:not(:disabled) {
-  color: #ff7b7b;
-}
-
+.post-detail-like-button:hover:not(:disabled),
 .post-detail-like-button.active {
-  color: #ff7b7b;
+  color: #ff9ab3;
 }
 
-.post-detail-like-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-/* 공개 범위 표시 */
-.post-detail-visibility {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.85rem;
-  margin-bottom: 1rem;
-}
-
-/* ==========================================
-   하단 네비게이션
-   ========================================== */
 .post-detail-footer {
-  margin-top: 1rem;
+  margin-top: 0.95rem;
 }
 
 .back-button {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.42rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .back-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
+  border-color: var(--line-strong);
 }
 
-/* ==========================================
-   로딩 / 에러 상태
-   ========================================== */
 .post-detail-loading,
 .post-detail-error {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
   text-align: center;
-  padding: 4rem 1rem;
-  color: rgba(255, 255, 255, 0.5);
+  padding: 1.2rem;
 }
 
-.post-detail-loading p,
-.post-detail-error p {
-  margin: 0 0 1.5rem;
-  font-size: 1rem;
-}
-
-/* ==========================================
-   반응형 대응
-   ========================================== */
-@media (max-width: 768px) {
+@media (max-width: 720px) {
   .post-detail-container {
-    padding: 80px 12px 60px;
-  }
-
-  .post-detail-card {
-    padding: 1.5rem;
+    padding: 96px 10px 86px;
   }
 
   .post-detail-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.8rem;
-  }
-
-  .post-detail-actions {
-    align-self: flex-end;
   }
 }

@@ -1,296 +1,129 @@
-/* 로그인 페이지 전체 컨테이너 */
-.login-container {
-  min-height: 100dvh;
-  height: auto;
+﻿.login-container {
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 64%;
-  max-width: 100%;
-  margin: 0;
-  padding:
-    clamp(84px, 9vh, 120px)
-    clamp(16px, 2vw, 28px)
-    clamp(68px, 8vh, 100px);
-  box-sizing: border-box;
+  padding: 104px 16px 92px;
 }
 
-/* 로그인 카드 */
 .login-card {
-  width: 100%;
-  max-width: 100%;
-  padding: clamp(1.25rem, 2.2vw + 0.75rem, 3rem);
-  border-radius: clamp(12px, 1.8vw, 16px);
-  background: rgba(26, 26, 26, 0.8);
-  backdrop-filter: blur(10px);
-  box-sizing: border-box;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+  width: min(520px, 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: linear-gradient(160deg, rgba(16, 28, 48, 0.9), rgba(10, 18, 33, 0.94));
+  box-shadow: var(--shadow-lg);
+  padding: clamp(1rem, 2.5vw, 1.8rem);
 }
 
 .login-title {
-  margin: 0 0 clamp(1.25rem, 2.4vw, 2rem);
+  margin-bottom: 1rem;
   text-align: center;
-  font-size: clamp(1.5rem, 1rem + 1.6vw, 2rem);
-  font-weight: 700;
-  color: white;
-  line-height: 1.2;
+  font-size: clamp(1.35rem, 2vw, 1.9rem);
 }
 
-/* 로그인 폼 */
 .login-form {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(1rem, 1.4vw + 0.6rem, 1.5rem);
+  display: grid;
+  gap: 0.8rem;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.login-form .form-group {
+  display: grid;
+  gap: 0.35rem;
 }
 
-.form-group input {
+.login-form .form-group input {
   width: 100%;
-  min-height: 48px;
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  font-size: 1rem;
-  transition: all 0.25s ease;
-  box-sizing: border-box;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  padding: 0.7rem 0.9rem;
 }
 
-.form-group input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+.login-form .form-group input::placeholder {
+  color: var(--text-muted);
 }
 
-.form-group input:focus {
+.login-form .form-group input:focus {
   outline: none;
-  border-color: rgba(102, 126, 234, 0.85);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  border-color: var(--line-strong);
+  box-shadow: 0 0 0 3px rgba(127, 230, 255, 0.16);
 }
 
-.form-group input.error {
-  border-color: rgba(255, 82, 82, 0.8);
-  background: rgba(255, 82, 82, 0.05);
+.login-form .form-group input.error {
+  border-color: rgba(255, 111, 142, 0.6);
 }
 
 .error-message {
-  color: #ff5252;
-  font-size: 0.85rem;
-  margin-top: 0.15rem;
-}
-
-.button-group {
-  margin-top: 0.25rem;
+  color: #ff9ab3;
+  font-size: 0.8rem;
 }
 
 .login-button,
 .kakao-login-button {
   width: 100%;
-  min-height: 48px;
-  padding: 0.875rem 1.5rem;
-  border: none;
-  border-radius: 10px;
-  font-size: clamp(0.95rem, 0.2vw + 0.9rem, 1rem);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
+  min-height: 46px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  border: 0;
 }
 
 .login-button {
-  background: linear-gradient(145deg, #667eea, #764ba2);
-  color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  color: #03131d;
+  background: linear-gradient(120deg, var(--brand-cyan), var(--brand-mint));
+  box-shadow: 0 10px 22px rgba(76, 255, 202, 0.26);
 }
 
 .login-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
-}
-
-.login-button:active {
-  transform: translateY(0);
+  transform: translateY(-1px);
 }
 
 .login-button:disabled,
 .kakao-login-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+  opacity: 0.55;
 }
 
 .divider {
-  margin: clamp(1rem, 1.5vw, 1.5rem) 0;
   display: flex;
   align-items: center;
-  text-align: center;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
 }
 
 .divider::before,
 .divider::after {
-  content: '';
+  content: "";
   flex: 1;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.divider span {
-  padding: 0 1rem;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.9rem;
-}
-
-.social-login-group {
-  margin-bottom: 0.75rem;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .kakao-login-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: #fee500;
-  color: #000;
-  box-shadow: 0 4px 12px rgba(254, 229, 0, 0.3);
-}
-
-.kakao-icon {
-  vertical-align: middle;
-}
-
-.kakao-login-button:hover:not(:disabled) {
-  background-color: #fdd835;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(254, 229, 0, 0.4);
-}
-
-.kakao-login-button:active {
-  transform: translateY(0);
+  color: #1a1300;
+  background: #fee500;
 }
 
 .signup-link {
   text-align: center;
-  margin-top: 0.5rem;
-  font-size: clamp(0.85rem, 0.3vw + 0.8rem, 0.95rem);
+  color: var(--text-muted);
+  font-size: 0.84rem;
 }
 
 .signup-link p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.7);
 }
 
 .signup-link a {
-  color: #4fc3f7 !important;
-  text-decoration: none;
-  font-weight: 400;
+  color: var(--brand-cyan) !important;
+  font-weight: 600;
   background: transparent !important;
 }
 
-.signup-link a:hover {
-  color: #29b6f6 !important;
-}
-
-@media (max-width: 1023px) {
+@media (max-width: 720px) {
   .login-container {
-    width: 56%;
-    min-height: 100dvh;
-    padding:
-      clamp(78px, 8.5vh, 108px)
-      clamp(12px, 2.4vw, 20px)
-      clamp(62px, 7vh, 84px);
-  }
-}
-
-@media (max-width: 767px) {
-  .login-container {
-    width: 92%;
-    max-width: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    min-height: 100dvh;
-    align-items: center;
-    padding:
-      clamp(72px, 8vh, 96px)
-      clamp(10px, 3vw, 16px)
-      clamp(56px, 6vh, 76px);
-  }
-
-  .login-card {
-    width: 100%;
-    max-width: 100%;
-    margin-inline: auto;
-  }
-}
-
-@media (max-width: 480px) {
-  .login-container {
-    padding:
-      clamp(68px, 7vh, 88px)
-      8px
-      clamp(50px, 5.5vh, 68px);
-  }
-
-  .login-card {
-    border-radius: 12px;
-  }
-
-  .divider span {
-    padding: 0 0.75rem;
-  }
-}
-
-/* 라이트 모드일 때 스타일 */
-@media (prefers-color-scheme: light) {
-  .login-card {
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.1),
-      0 0 0 1px rgba(0, 0, 0, 0.1);
-  }
-
-  .login-title {
-    color: #1a1a1a;
-  }
-
-  .form-group input {
-    border-color: rgba(0, 0, 0, 0.2);
-    background: rgba(255, 255, 255, 0.8);
-    color: #1a1a1a;
-  }
-
-  .form-group input::placeholder {
-    color: rgba(26, 26, 26, 0.4);
-  }
-
-  .form-group input:focus {
-    border-color: rgba(79, 195, 247, 0.8);
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.2);
-  }
-
-  .login-button {
-    background: linear-gradient(145deg, #4fc3f7, #29b6f6);
-    box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
-  }
-
-  .divider::before,
-  .divider::after {
-    border-bottom-color: rgba(0, 0, 0, 0.2);
-  }
-
-  .divider span {
-    color: rgba(0, 0, 0, 0.55);
-  }
-
-  .signup-link p {
-    color: rgba(26, 26, 26, 0.75);
+    padding: 96px 10px 86px;
   }
 }
