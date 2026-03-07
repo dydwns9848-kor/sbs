@@ -7,7 +7,10 @@ function Home() {
     <>
       <GNB />
       <main className="home-container">
-        <h1 className="home-title">MY WORK</h1>
+        <h1 className="home-title" aria-label="Kim Yongjun Portfolio">
+          <span className="home-title-main">KIM YONGJUN</span>
+          <span className="home-title-sub">PORTFOLIO</span>
+        </h1>
       </main>
       <Footer />
     </>    
