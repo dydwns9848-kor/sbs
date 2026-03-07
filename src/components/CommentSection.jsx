@@ -28,6 +28,10 @@ function CommentSection({ postId }) {
   const handleNewComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
+    if (!isAuthenticated) {
+      alert('댓글 작성은 로그인 후 이용 가능합니다.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       await createComment(newComment.trim());
@@ -50,12 +54,20 @@ function CommentSection({ postId }) {
   };
 
   const startReply = (commentId) => {
+    if (!isAuthenticated) {
+      alert('답글 작성은 로그인 후 이용 가능합니다.');
+      return;
+    }
     setReplyingTo(commentId);
     setReplyContent('');
   };
 
   const handleReplySubmit = async (commentId) => {
     if (!replyContent.trim()) return;
+    if (!isAuthenticated) {
+      alert('답글 작성은 로그인 후 이용 가능합니다.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       await createReply(commentId, replyContent.trim());
@@ -113,9 +125,9 @@ function CommentSection({ postId }) {
           placeholder={isAuthenticated ? '댓글을 입력하세요.' : '댓글을 작성하려면 로그인하세요.'}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          disabled={!isAuthenticated || isSubmitting}
+          disabled={isSubmitting}
         />
-        <button type="submit" disabled={!isAuthenticated || isSubmitting || !newComment.trim()}>
+        <button type="submit" disabled={isSubmitting || !newComment.trim()}>
           등록
         </button>
       </form>
