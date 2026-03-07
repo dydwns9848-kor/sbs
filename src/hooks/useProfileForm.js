@@ -162,6 +162,21 @@ export function useProfileForm(accessToken, onProfileUpdated) {
   };
 
   /**
+   * 이미지 삭제 처리
+   * @param {string} type - 'profile' 또는 'background'
+   */
+  const removeImage = (type) => {
+    if (type === 'profile') {
+      setSelectedFile(null);
+      setPreviewImage(null);
+      return;
+    }
+
+    setSelectedBackgroundFile(null);
+    setPreviewBackground(null);
+  };
+
+  /**
    * 이미지 서버 업로드
    * @param {File} file - 업로드할 파일
    * @returns {Promise<string|null>} 업로드된 이미지 URL
@@ -317,6 +332,7 @@ export function useProfileForm(accessToken, onProfileUpdated) {
     // 핸들러
     handleChange,
     handleImageSelect,
+    removeImage,
     validateForm,
     submitProfile
   };

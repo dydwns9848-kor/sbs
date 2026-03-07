@@ -1,65 +1,70 @@
-import { useRef } from 'react';
+﻿import { useRef } from 'react';
 
 /**
- * ProfileImageSection 컴포넌트
- *
- * 프로필 이미지와 배경 이미지를 선택하고 미리보기를 표시하는 섹션입니다.
+ * 프로필 이미지 섹션
  *
  * @param {Object} props
- * @param {string} props.previewImage - 프로필 이미지 미리보기 URL
- * @param {string} props.previewBackground - 배경 이미지 미리보기 URL
- * @param {Function} props.onImageSelect - 이미지 선택 핸들러 (file, type) => void
+ * @param {string|null} props.previewImage
+ * @param {string|null} props.previewBackground
+ * @param {(file: File, type: 'profile'|'background') => void} props.onImageSelect
+ * @param {(type: 'profile'|'background') => void} props.onRemoveImage
  */
-function ProfileImageSection({ previewImage, previewBackground, onImageSelect }) {
-  // 숨겨진 파일 input을 참조하기 위한 ref
+function ProfileImageSection({ previewImage, previewBackground, onImageSelect, onRemoveImage }) {
   const profileInputRef = useRef(null);
   const backgroundInputRef = useRef(null);
 
-  /**
-   * 파일 선택 다이얼로그 열기
-   */
   const openProfileDialog = () => profileInputRef.current?.click();
   const openBackgroundDialog = () => backgroundInputRef.current?.click();
 
-  /**
-   * 파일 변경 핸들러
-   */
   const handleFileChange = (e, type) => {
     const file = e.target.files?.[0];
     if (file) {
       onImageSelect(file, type);
     }
+
+    // 같은 파일을 다시 선택해도 change 이벤트가 발생하도록 초기화
+    e.target.value = '';
+  };
+
+  const handleRemoveClick = (e, type) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onRemoveImage(type);
   };
 
   return (
     <>
-      {/* 배경 + 프로필 이미지 통합 섹션 */}
       <div className="profile-header-section">
-        {/* 배경 이미지 영역 */}
         <div
           className="profile-background-wrapper"
           onClick={openBackgroundDialog}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && openBackgroundDialog()}
-          style={{
-            backgroundImage: previewBackground ? `url(${previewBackground})` : 'none'
-          }}
+          style={{ backgroundImage: previewBackground ? `url(${previewBackground})` : 'none' }}
         >
-          {/* 배경 이미지 플레이스홀더 */}
           {!previewBackground && (
             <div className="background-placeholder">
-              <span className="background-placeholder-icon">🖼️</span>
+              <span className="background-placeholder-icon">IMG</span>
               <span className="background-placeholder-text">배경 이미지 선택</span>
             </div>
           )}
-          {/* 호버 오버레이 */}
+
           <div className="profile-background-overlay">
-            <span>📷 배경 변경</span>
+            <span>배경 변경</span>
           </div>
+
+          {previewBackground && (
+            <button
+              type="button"
+              className="image-remove-btn background-remove-btn"
+              onClick={(e) => handleRemoveClick(e, 'background')}
+            >
+              배경 삭제
+            </button>
+          )}
         </div>
 
-        {/* 숨겨진 배경 이미지 파일 입력 */}
         <input
           type="file"
           ref={backgroundInputRef}
@@ -68,7 +73,6 @@ function ProfileImageSection({ previewImage, previewBackground, onImageSelect })
           style={{ display: 'none' }}
         />
 
-        {/* 프로필 이미지 (배경 위에 겹침) */}
         <div className="profile-image-container">
           <div
             className="profile-image-wrapper"
@@ -78,24 +82,29 @@ function ProfileImageSection({ previewImage, previewBackground, onImageSelect })
             onKeyDown={(e) => e.key === 'Enter' && openProfileDialog()}
           >
             {previewImage ? (
-              <img
-                src={previewImage}
-                alt="프로필 이미지"
-                className="profile-image"
-              />
+              <img src={previewImage} alt="프로필 이미지" className="profile-image" />
             ) : (
               <div className="profile-image-placeholder">
-                <span className="placeholder-icon">📷</span>
+                <span className="placeholder-icon">IMG</span>
                 <span className="placeholder-text">이미지 선택</span>
               </div>
             )}
-            {/* 호버 오버레이 */}
+
             <div className="profile-image-overlay">
               <span>변경</span>
             </div>
           </div>
 
-          {/* 숨겨진 프로필 이미지 파일 입력 */}
+          {previewImage && (
+            <button
+              type="button"
+              className="image-remove-btn profile-remove-btn"
+              onClick={(e) => handleRemoveClick(e, 'profile')}
+            >
+              프로필 삭제
+            </button>
+          )}
+
           <input
             type="file"
             ref={profileInputRef}
@@ -106,9 +115,7 @@ function ProfileImageSection({ previewImage, previewBackground, onImageSelect })
         </div>
       </div>
 
-      <p className="image-hint">
-        프로필 이미지와 배경 이미지를 클릭하여 변경하세요
-      </p>
+      <p className="image-hint">이미지를 클릭하면 변경, 삭제 버튼으로 기본 이미지로 되돌릴 수 있어요.</p>
     </>
   );
 }

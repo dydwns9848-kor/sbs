@@ -29,6 +29,7 @@ function Profile() {
     previewBackground,
     handleChange,
     handleImageSelect,
+    removeImage,
     submitProfile
   } = useProfileForm(accessToken, (updatedProfile) => {
     updateUser((prevUser) => ({
@@ -110,6 +111,7 @@ function Profile() {
               previewImage={previewImage}
               previewBackground={previewBackground}
               onImageSelect={handleImageSelect}
+              onRemoveImage={removeImage}
             />
 
             {/* 닉네임 (필수) */}
