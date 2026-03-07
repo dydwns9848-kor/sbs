@@ -8,6 +8,7 @@ export function useComments(postId, accessToken) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [repliesMap, setRepliesMap] = useState({});
+  const [likeLoadingIds, setLikeLoadingIds] = useState([]);
 
   const buildHeaders = useCallback(() => {
     const headers = {};
@@ -55,6 +56,79 @@ export function useComments(postId, accessToken) {
       return [];
     }
   }, [buildHeaders]);
+
+  const applyCommentLikeState = useCallback((commentId, liked, likeCount) => {
+    setComments(prev => prev.map(comment => (
+      comment.id === commentId
+        ? {
+            ...comment,
+            liked,
+            isLiked: liked,
+            likeCount: likeCount ?? comment.likeCount ?? 0,
+          }
+        : comment
+    )));
+
+    setRepliesMap(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(parentId => {
+        next[parentId] = (next[parentId] || []).map(reply => (
+          reply.id === commentId
+            ? {
+                ...reply,
+                liked,
+                isLiked: liked,
+                likeCount: likeCount ?? reply.likeCount ?? 0,
+              }
+            : reply
+        ));
+      });
+      return next;
+    });
+  }, []);
+
+  const findCommentById = useCallback((commentId) => {
+    const topLevel = comments.find(comment => comment.id === commentId);
+    if (topLevel) return topLevel;
+
+    for (const list of Object.values(repliesMap)) {
+      const reply = (list || []).find(item => item.id === commentId);
+      if (reply) return reply;
+    }
+    return null;
+  }, [comments, repliesMap]);
+
+  const toggleCommentLike = useCallback(async (commentId) => {
+    if (!commentId || likeLoadingIds.includes(commentId)) return null;
+
+    const target = findCommentById(commentId);
+    const currentLiked = Boolean(target?.liked ?? target?.isLiked ?? false);
+    const currentCount = target?.likeCount || 0;
+    const nextLiked = !currentLiked;
+    const optimisticCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
+
+    setLikeLoadingIds(prev => [...prev, commentId]);
+    applyCommentLikeState(commentId, nextLiked, optimisticCount);
+
+    try {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.comments}/${commentId}/like`;
+      const response = await axios.post(url, {}, {
+        headers: buildHeaders(),
+        withCredentials: true,
+      });
+      const data = response.data?.data ?? response.data;
+      const liked = data?.liked ?? nextLiked;
+      const likeCount = data?.likeCount ?? optimisticCount;
+      applyCommentLikeState(commentId, liked, likeCount);
+      return { liked, likeCount };
+    } catch (err) {
+      console.error('댓글 좋아요 처리 실패:', err);
+      applyCommentLikeState(commentId, currentLiked, currentCount);
+      throw err;
+    } finally {
+      setLikeLoadingIds(prev => prev.filter(id => id !== commentId));
+    }
+  }, [applyCommentLikeState, buildHeaders, findCommentById, likeLoadingIds]);
 
   const createComment = useCallback(async (content) => {
     const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${postId}/comments`;
@@ -127,5 +201,7 @@ export function useComments(postId, accessToken) {
     deleteComment,
     fetchReplies,
     repliesMap,
+    toggleCommentLike,
+    likeLoadingIds,
   };
 }

@@ -66,6 +66,7 @@
 .post-detail-author-name {
   font-size: 0.95rem;
   font-weight: 700;
+  color: var(--text-muted);
 }
 
 .post-detail-date {

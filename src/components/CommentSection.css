@@ -67,6 +67,12 @@
   border-color: var(--line-strong);
 }
 
+.comment-like-button.active {
+  color: var(--accent-2);
+  border-color: rgba(127, 230, 255, 0.5);
+  background: rgba(127, 230, 255, 0.12);
+}
+
 .comment-list,
 .reply-list {
   list-style: none;

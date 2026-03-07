@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useComments } from '../hooks/useComments';
 import './CommentSection.css';
@@ -15,6 +15,8 @@ function CommentSection({ postId, onCommentCountChange }) {
     deleteComment,
     fetchReplies,
     repliesMap,
+    toggleCommentLike,
+    likeLoadingIds,
   } = useComments(postId, accessToken);
 
   const [newComment, setNewComment] = useState('');
@@ -28,14 +30,15 @@ function CommentSection({ postId, onCommentCountChange }) {
   const handleNewComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
+
     setIsSubmitting(true);
-      try {
-        const created = await createComment(newComment.trim());
-        if (created) {
-          onCommentCountChange?.(1);
-          setNewComment('');
-        }
-      } catch (err) {
+    try {
+      const created = await createComment(newComment.trim());
+      if (created) {
+        onCommentCountChange?.(1);
+        setNewComment('');
+      }
+    } catch (err) {
       console.error('댓글 작성 실패:', err);
     } finally {
       setIsSubmitting(false);
@@ -46,7 +49,8 @@ function CommentSection({ postId, onCommentCountChange }) {
     if (!repliesMap[commentId]) {
       await fetchReplies(commentId);
     }
-    setExpandedReplies(prev => ({
+
+    setExpandedReplies((prev) => ({
       ...prev,
       [commentId]: !prev[commentId],
     }));
@@ -59,6 +63,7 @@ function CommentSection({ postId, onCommentCountChange }) {
 
   const handleReplySubmit = async (commentId) => {
     if (!replyContent.trim()) return;
+
     setIsSubmitting(true);
     try {
       await createReply(commentId, replyContent.trim());
@@ -78,6 +83,7 @@ function CommentSection({ postId, onCommentCountChange }) {
 
   const handleEditSubmit = async (commentId) => {
     if (!editingContent.trim()) return;
+
     setIsSubmitting(true);
     try {
       await updateComment(commentId, editingContent.trim());
@@ -92,6 +98,7 @@ function CommentSection({ postId, onCommentCountChange }) {
 
   const handleDelete = async (commentId) => {
     if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
+
     setIsSubmitting(true);
     try {
       const deleted = await deleteComment(commentId);
@@ -108,6 +115,25 @@ function CommentSection({ postId, onCommentCountChange }) {
   const isAuthor = (comment) => {
     if (!user) return false;
     return comment.author?.id === user.id || comment.userId === user.id;
+  };
+
+  const renderLikeButton = (item) => {
+    const liked = Boolean(item?.liked ?? item?.isLiked ?? false);
+    const likeCount = item?.likeCount || 0;
+    const isLikeLoading = likeLoadingIds.includes(item.id);
+
+    return (
+      <button
+        type="button"
+        className={`comment-like-button ${liked ? 'active' : ''}`}
+        disabled={!isAuthenticated || isLikeLoading}
+        onClick={() => {
+          toggleCommentLike(item.id).catch(() => {});
+        }}
+      >
+        {isLikeLoading ? '처리 중...' : `좋아요 ${likeCount}`}
+      </button>
+    );
   };
 
   return (
@@ -134,12 +160,13 @@ function CommentSection({ postId, onCommentCountChange }) {
         <p className="comment-state">댓글이 없습니다.</p>
       ) : (
         <ul className="comment-list">
-          {comments.map(comment => (
+          {comments.map((comment) => (
             <li key={comment.id} className="comment-item">
               <div className="comment-header">
                 <span className="comment-author">{comment.author?.name || comment.userName || '익명'}</span>
                 <span className="comment-date">{new Date(comment.createdAt).toLocaleString()}</span>
               </div>
+
               {editingId === comment.id ? (
                 <div className="comment-edit">
                   <textarea
@@ -161,6 +188,7 @@ function CommentSection({ postId, onCommentCountChange }) {
               )}
 
               <div className="comment-actions">
+                {renderLikeButton(comment)}
                 <button type="button" onClick={() => startReply(comment.id)}>
                   답글
                 </button>
@@ -193,13 +221,16 @@ function CommentSection({ postId, onCommentCountChange }) {
 
               {expandedReplies[comment.id] && (
                 <ul className="reply-list">
-                  {(repliesMap[comment.id] || []).map(reply => (
+                  {(repliesMap[comment.id] || []).map((reply) => (
                     <li key={reply.id} className="reply-item">
                       <div className="comment-header">
                         <span className="comment-author">{reply.author?.name || reply.userName || '익명'}</span>
                         <span className="comment-date">{new Date(reply.createdAt).toLocaleString()}</span>
                       </div>
                       <p className="comment-body">{reply.content}</p>
+                      <div className="comment-actions">
+                        {renderLikeButton(reply)}
+                      </div>
                     </li>
                   ))}
                 </ul>
