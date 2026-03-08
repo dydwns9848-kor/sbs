@@ -1,29 +1,58 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useDm } from '../hooks/useDm';
+import { API_CONFIG } from '../config';
 import './Gnb.css';
 import defaultUserImage from '../assets/default_user.png';
 
-function normalizeImageUrl(value) {
+function normalizeRawImage(value) {
   if (!value || typeof value !== 'string') return null;
-  const raw = value.trim().replace(/^"+|"+$/g, '');
+  const raw = value.trim().replace(/^"+|"+$/g, '').replace(/\\/g, '/');
   if (!raw || ['null', 'undefined'].includes(raw.toLowerCase())) return null;
-  if (raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
-  if (/^https?:\/\//i.test(raw)) return raw;
-  if (raw.startsWith('//')) return `${window.location.protocol}${raw}`;
-  if (raw.startsWith('/')) return `${window.location.origin}${raw}`;
-  return `${window.location.origin}/${raw.replace(/^\.?\//, '')}`;
+  return raw;
+}
+
+function buildImageCandidates(value) {
+  const raw = normalizeRawImage(value);
+  if (!raw) return [];
+
+  if (raw.startsWith('data:') || raw.startsWith('blob:')) return [raw];
+  if (/^https?:\/\//i.test(raw)) return [raw];
+  if (raw.startsWith('//')) return [`${window.location.protocol}${raw}`];
+
+  const origin = window.location.origin;
+  const candidates = new Set();
+
+  if (raw.startsWith('/')) {
+    candidates.add(`${origin}${raw}`);
+    if (raw.startsWith('/uploads/')) {
+      candidates.add(`${origin}/api${raw}`);
+    }
+    if (raw.startsWith('/api/uploads/')) {
+      candidates.add(`${origin}${raw.replace('/api/uploads/', '/uploads/')}`);
+    }
+  } else {
+    candidates.add(`${origin}/${raw.replace(/^\.?\//, '')}`);
+    if (raw.startsWith('uploads/')) {
+      candidates.add(`${origin}/api/${raw}`);
+    }
+  }
+
+  return Array.from(candidates);
 }
 
 function GNB() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated, isLoading, logout, accessToken } = useAuth();
+  const { user, isAuthenticated, isLoading, logout, accessToken, updateUser } = useAuth();
   const { getMyRooms } = useDm(accessToken);
   const [dmUnreadCount, setDmUnreadCount] = useState(0);
+  const [avatarTryIndex, setAvatarTryIndex] = useState(0);
 
   const profilePath = user?.id ? `/users/${user.id}` : '/profile';
+
   const userAvatarCandidate = user?.profileImage
     ?? user?.userProfileImage
     ?? user?.profileImageUrl
@@ -36,12 +65,55 @@ function GNB() {
     ?? user?.profile?.userProfileImage
     ?? user?.profile?.imageUrl
     ?? null;
-  const userAvatar = (
-    typeof userAvatarCandidate === 'string'
-    && ['null', 'undefined', ''].includes(userAvatarCandidate.trim().toLowerCase())
-  )
-    ? null
-    : normalizeImageUrl(userAvatarCandidate);
+
+  const avatarCandidates = useMemo(() => {
+    const candidates = buildImageCandidates(userAvatarCandidate);
+    if (candidates.length === 0) return [defaultUserImage];
+    return [...candidates, defaultUserImage];
+  }, [userAvatarCandidate]);
+
+  const currentAvatar = avatarCandidates[Math.min(avatarTryIndex, avatarCandidates.length - 1)] || defaultUserImage;
+
+  useEffect(() => {
+    setAvatarTryIndex(0);
+  }, [userAvatarCandidate]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !accessToken) return;
+    const hasImage = Boolean(normalizeRawImage(userAvatarCandidate));
+    if (hasImage) return;
+
+    const loadProfileForAvatar = async () => {
+      try {
+        const response = await axios.get(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.profile}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          withCredentials: true,
+        });
+        const data = response.data?.data ?? null;
+        if (!data) return;
+
+        const nextImage = data.profileImage
+          ?? data.userProfileImage
+          ?? data.profileImageUrl
+          ?? data.profile_image
+          ?? data.avatar
+          ?? data.avatarUrl
+          ?? data.imageUrl
+          ?? null;
+
+        if (nextImage) {
+          updateUser((prev) => ({
+            ...(prev || {}),
+            profileImage: nextImage,
+          }));
+        }
+      } catch (error) {
+        // no-op
+      }
+    };
+
+    loadProfileForAvatar();
+  }, [isAuthenticated, accessToken, userAvatarCandidate, updateUser]);
 
   const handleLogout = async () => {
     if (!window.confirm('로그아웃 하시겠습니까?')) return;
@@ -141,11 +213,11 @@ function GNB() {
             <>
               <Link to={profilePath} className="gnb-user-info">
                 <img
-                  src={userAvatar || defaultUserImage}
+                  src={currentAvatar}
                   alt="프로필"
                   className="gnb-user-avatar"
-                  onError={(e) => {
-                    e.currentTarget.src = defaultUserImage;
+                  onError={() => {
+                    setAvatarTryIndex((prev) => Math.min(prev + 1, avatarCandidates.length - 1));
                   }}
                 />
                 <span className="gnb-user-name">{user?.name || '내 프로필'}</span>
