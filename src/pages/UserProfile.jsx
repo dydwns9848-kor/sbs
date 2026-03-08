@@ -54,6 +54,8 @@ async function tryFetchUserProfile(authorId, accessToken) {
   const candidates = [
     { url: `${API_CONFIG.baseUrl}/users/${authorId}` },
     { url: `${API_CONFIG.baseUrl}/users/${authorId}/profile` },
+    { url: `${API_CONFIG.baseUrl}/users/${authorId}/public` },
+    { url: `${API_CONFIG.baseUrl}/users/${authorId}/info` },
     { url: `${API_CONFIG.baseUrl}/user/${authorId}` },
   ];
 
@@ -66,11 +68,32 @@ async function tryFetchUserProfile(authorId, accessToken) {
       const data = response.data?.data ?? response.data ?? null;
       if (!data || typeof data !== 'object') continue;
 
-      const name = data.name || data.userName || data.nickname || null;
-      const profileImage = data.profileImage || data.userProfileImage || data.profileImageUrl || null;
+      const buckets = [data, data.user, data.profile, data.member, data.content, data.result]
+        .filter((item) => item && typeof item === 'object');
 
-      if (name || profileImage) {
-        return { name, profileImage };
+      for (const bucket of buckets) {
+        const bucketId = bucket.id ?? bucket.userId ?? bucket.memberId ?? null;
+        if (bucketId && Number(bucketId) !== Number(authorId)) continue;
+
+        const name = bucket.name
+          || bucket.userName
+          || bucket.username
+          || bucket.nickname
+          || bucket.nickName
+          || bucket.user_name
+          || null;
+        const profileImage = bucket.profileImage
+          || bucket.userProfileImage
+          || bucket.profileImageUrl
+          || bucket.profile_image
+          || bucket.avatar
+          || bucket.avatarUrl
+          || bucket.imageUrl
+          || null;
+
+        if (name || profileImage) {
+          return { name, profileImage };
+        }
       }
     } catch (err) {
       // 다음 API 시도
@@ -101,6 +124,14 @@ function UserProfile() {
 
   const authorId = Number(id);
   const isOwner = Boolean(user && Number(user.id) === authorId);
+
+  useEffect(() => {
+    setProfile({
+      name: location.state?.authorName || '',
+      profileImage: location.state?.authorImage || null,
+    });
+    setPosts([]);
+  }, [id, location.state?.authorName, location.state?.authorImage]);
 
   const loadPage = useCallback(async () => {
     setIsLoading(true);
