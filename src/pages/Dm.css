@@ -63,6 +63,7 @@
   text-align: left;
   color: var(--text);
   padding: 0.52rem;
+  cursor: pointer;
 }
 
 .dm-room-item:hover {
@@ -84,6 +85,17 @@
   flex: 0 0 auto;
 }
 
+.dm-partner-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 50%;
+}
+
+.dm-partner-link:disabled {
+  cursor: default;
+}
+
 .dm-room-meta {
   min-width: 0;
   width: 100%;
@@ -98,6 +110,27 @@
 
 .dm-room-line strong {
   font-size: 0.87rem;
+}
+
+.dm-partner-name {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 0;
+  font-size: 0.87rem;
+  font-weight: 700;
+}
+
+.dm-partner-name:hover:not(:disabled),
+.dm-partner-link:hover:not(:disabled) .dm-avatar,
+.dm-panel-user:hover:not(:disabled) strong {
+  color: var(--brand-cyan);
+  border-color: var(--line-strong);
+}
+
+.dm-partner-name:disabled,
+.dm-panel-user:disabled {
+  cursor: default;
 }
 
 .dm-room-line span {

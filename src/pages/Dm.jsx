@@ -119,6 +119,11 @@ function Dm() {
     };
   }, [normalizeUser, user?.id]);
 
+  const isUnknownPartner = (partner) => {
+    const name = `${partner?.name || ''}`.trim();
+    return !name || name === '알 수 없음' || name === 'Unknown';
+  };
+
   const normalizeMessage = useCallback((message) => {
     const sender = message?.sender || message?.user || null;
     const senderId = message?.senderId ?? message?.userId ?? sender?.id ?? null;
@@ -210,6 +215,24 @@ function Dm() {
         return sortMessages(Array.from(uniq.values()));
       });
 
+      const partnerFromMessages = list.find(
+        (message) => Number(message.senderId) && Number(message.senderId) !== Number(user?.id)
+      );
+      if (partnerFromMessages) {
+        setRooms((prev) => prev.map((room) => {
+          if (Number(room.id) !== Number(roomId)) return room;
+          const keepName = !isUnknownPartner(room.partner);
+          return {
+            ...room,
+            partner: {
+              ...room.partner,
+              id: room.partner?.id ?? partnerFromMessages.senderId ?? null,
+              name: keepName ? room.partner?.name : (partnerFromMessages.senderName || room.partner?.name || '알 수 없음'),
+            },
+          };
+        }));
+      }
+
       const lastMessage = sortMessages(list).at(-1);
       if (lastMessage?.id) {
         markAsRead(roomId, lastMessage.id).catch(() => {});
@@ -222,7 +245,14 @@ function Dm() {
     } finally {
       setMessagesLoading(false);
     }
-  }, [getMessages, markAsRead, normalizeMessage]);
+  }, [getMessages, markAsRead, normalizeMessage, user?.id]);
+
+  const handleOpenPartnerProfile = (e, partnerId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!partnerId) return;
+    navigate(`/users/${partnerId}`);
+  };
 
   const handleLoadMoreMessages = async () => {
     if (!selectedRoomId || messages.length === 0 || !hasMoreMessages || messagesLoading) return;
@@ -395,19 +425,40 @@ function Dm() {
               <ul className="dm-room-items">
                 {rooms.map((room) => (
                   <li key={room.id}>
-                    <button
-                      type="button"
+                    <div
                       className={`dm-room-item ${Number(selectedRoomId) === Number(room.id) ? 'active' : ''}`}
                       onClick={() => setSelectedRoomId(room.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedRoomId(room.id);
+                        }
+                      }}
                     >
-                      <img
-                        src={room.partner.profileImage || defaultUserImage}
-                        alt={room.partner.name}
-                        className="dm-avatar"
-                      />
+                      <button
+                        type="button"
+                        className="dm-partner-link"
+                        onClick={(e) => handleOpenPartnerProfile(e, room.partner.id)}
+                        disabled={!room.partner.id}
+                      >
+                        <img
+                          src={room.partner.profileImage || defaultUserImage}
+                          alt={room.partner.name}
+                          className="dm-avatar"
+                        />
+                      </button>
                       <div className="dm-room-meta">
                         <div className="dm-room-line">
-                          <strong>{room.partner.name}</strong>
+                          <button
+                            type="button"
+                            className="dm-partner-name"
+                            onClick={(e) => handleOpenPartnerProfile(e, room.partner.id)}
+                            disabled={!room.partner.id}
+                          >
+                            {room.partner.name}
+                          </button>
                           <span>{formatRoomTime(room.lastMessageAt)}</span>
                         </div>
                         <div className="dm-room-line">
@@ -415,7 +466,7 @@ function Dm() {
                           {room.unreadCount > 0 && <em>{room.unreadCount}</em>}
                         </div>
                       </div>
-                    </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -431,7 +482,8 @@ function Dm() {
                   <button
                     type="button"
                     className="dm-panel-user"
-                    onClick={() => navigate(`/users/${selectedRoom.partner.id}`)}
+                    onClick={(e) => handleOpenPartnerProfile(e, selectedRoom.partner.id)}
+                    disabled={!selectedRoom.partner.id}
                   >
                     <img
                       src={selectedRoom.partner.profileImage || defaultUserImage}
