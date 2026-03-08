@@ -32,7 +32,7 @@
   text-transform: uppercase;
   transform-style: preserve-3d;
   will-change: transform;
-  animation: mywork-spin-3d 12s linear infinite;
+  animation: none;
 }
 
 .home-title-main {
