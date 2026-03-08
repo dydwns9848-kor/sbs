@@ -178,6 +178,25 @@ function Dm() {
     [rooms, selectedRoomId]
   );
 
+  const isMineMessage = useCallback((message) => {
+    if (!message) return false;
+    if (message.isMine) return true;
+
+    const myId = Number(user?.id);
+    const partnerId = Number(selectedRoom?.partner?.id);
+    const senderId = Number(message.senderId);
+    const senderName = `${message.senderName || ''}`.trim();
+    const partnerName = `${selectedRoom?.partner?.name || ''}`.trim();
+    const myName = `${user?.name || ''}`.trim();
+
+    if (senderId && myId && senderId === myId) return true;
+    if (senderId && partnerId) return senderId !== partnerId;
+    if (senderName && partnerName && senderName === partnerName) return false;
+    if (senderName && myName && senderName === myName) return true;
+
+    return false;
+  }, [selectedRoom?.partner?.id, selectedRoom?.partner?.name, user?.id, user?.name]);
+
   const extractList = (payload) => {
     if (!payload) return [];
     if (Array.isArray(payload)) return payload;
@@ -561,21 +580,26 @@ function Dm() {
                   ) : (
                     <ul className="dm-message-list">
                       {messages.map((message) => (
-                        <li
-                          key={message.id}
-                          className={`dm-message-item ${message.isMine ? 'mine' : ''}`}
-                        >
+                        (() => {
+                          const mine = isMineMessage(message);
+                          return (
+                            <li
+                              key={message.id}
+                              className={`dm-message-item ${mine ? 'mine' : ''}`}
+                            >
                           <img
-                            src={(message.isMine ? myProfileImage : (message.senderProfileImage || selectedRoom.partner.profileImage)) || defaultUserImage}
-                            alt={message.isMine ? '내 프로필' : message.senderName}
+                            src={(mine ? myProfileImage : (message.senderProfileImage || selectedRoom.partner.profileImage)) || defaultUserImage}
+                            alt={mine ? '내 프로필' : message.senderName}
                             className="dm-message-avatar"
                           />
                           <div className="dm-bubble">
-                            {!message.isMine && <strong>{message.senderName}</strong>}
+                            {!mine && <strong>{message.senderName}</strong>}
                             <p>{message.content}</p>
                             <span>{formatMessageTime(message.createdAt)}</span>
                           </div>
-                        </li>
+                            </li>
+                          );
+                        })()
                       ))}
                     </ul>
                   )}
