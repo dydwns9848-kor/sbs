@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import Footer from '../components/Footer';
 import GNB from '../components/Gnb';
@@ -13,6 +13,7 @@ const MESSAGE_PAGE_SIZE = 30;
 
 function Dm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user, isAuthenticated, accessToken, isLoading: authLoading } = useAuth();
   const { createOrGetRoom, getMyRooms, getMessages, sendMessage, markAsRead } = useDm(accessToken);
@@ -128,6 +129,7 @@ function Dm() {
       id: room?.roomId ?? room?.id ?? null,
       partner,
       lastMessage: room?.lastMessage?.content ?? room?.lastMessageContent ?? room?.lastMessageText ?? '',
+      lastMessageId: room?.lastMessage?.id ?? room?.lastMessageId ?? room?.latestMessageId ?? room?.recentMessageId ?? null,
       lastMessageAt: room?.lastMessageAt ?? room?.updatedAt ?? room?.lastMessage?.createdAt ?? null,
       unreadCount: Number(room?.unreadCount ?? room?.unReadCount ?? 0),
     };
@@ -320,8 +322,19 @@ function Dm() {
     await fetchMessages(selectedRoomId, { beforeId: oldestMessageId, reset: false });
   };
 
-  const handleSelectRoom = (roomId) => {
+  const handleSelectRoom = (room) => {
+    const roomId = room?.id ?? room;
+    if (!roomId) return;
     setSelectedRoomId(roomId);
+    setRooms((prev) => prev.map((item) => (
+      Number(item.id) === Number(roomId)
+        ? { ...item, unreadCount: 0 }
+        : item
+    )));
+    const lastReadMessageId = room?.lastMessageId ?? null;
+    if (lastReadMessageId) {
+      markAsRead(roomId, lastReadMessageId).catch(() => {});
+    }
     if (isMobile) {
       setMobileView('chat');
     }
@@ -441,26 +454,37 @@ function Dm() {
         const room = await createOrGetRoom(targetUserIdParam);
         const normalized = normalizeRoom(room);
         if (!normalized.id) return;
+        const patchedNormalized = {
+          ...normalized,
+          partner: {
+            ...normalized.partner,
+            id: normalized.partner?.id ?? targetUserIdParam,
+            name: isUnknownPartner(normalized.partner)
+              ? (location.state?.targetUserName || `사용자 ${targetUserIdParam}`)
+              : normalized.partner.name,
+            profileImage: normalized.partner?.profileImage ?? location.state?.targetUserImage ?? null,
+          },
+        };
 
         setRooms((prev) => {
-          const exists = prev.some((item) => Number(item.id) === Number(normalized.id));
+          const exists = prev.some((item) => Number(item.id) === Number(patchedNormalized.id));
           const next = exists
-            ? prev.map((item) => (Number(item.id) === Number(normalized.id) ? normalized : item))
-            : [normalized, ...prev];
+            ? prev.map((item) => (Number(item.id) === Number(patchedNormalized.id) ? patchedNormalized : item))
+            : [patchedNormalized, ...prev];
           return sortByLatest(next);
         });
-        setSelectedRoomId(normalized.id);
+        setSelectedRoomId(patchedNormalized.id);
         if (isMobile) {
           setMobileView('chat');
         }
-        navigate('/dm', { replace: true });
+        navigate('/dm', { replace: true, state: null });
       } catch (err) {
         alert('DM 방을 여는 데 실패했습니다.');
       }
     };
 
     openTargetRoom();
-  }, [authLoading, isAuthenticated, accessToken, targetUserIdParam, user?.id, createOrGetRoom, normalizeRoom, navigate, isMobile]);
+  }, [authLoading, isAuthenticated, accessToken, targetUserIdParam, user?.id, createOrGetRoom, normalizeRoom, navigate, isMobile, location.state]);
 
   useEffect(() => {
     if (!messageBodyRef.current) return;
@@ -519,13 +543,13 @@ function Dm() {
                   <li key={room.id}>
                     <div
                       className={`dm-room-item ${Number(selectedRoomId) === Number(room.id) ? 'active' : ''}`}
-                      onClick={() => handleSelectRoom(room.id)}
+                      onClick={() => handleSelectRoom(room)}
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          handleSelectRoom(room.id);
+                          handleSelectRoom(room);
                         }
                       }}
                     >

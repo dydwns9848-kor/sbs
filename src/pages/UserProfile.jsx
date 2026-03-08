@@ -161,7 +161,12 @@ function UserProfile() {
   };
 
   const handleOpenDm = () => {
-    navigate(`/dm?userId=${authorId}`);
+    navigate(`/dm?userId=${authorId}`, {
+      state: {
+        targetUserName: profile.name,
+        targetUserImage: profile.profileImage || null,
+      },
+    });
   };
 
   return (
