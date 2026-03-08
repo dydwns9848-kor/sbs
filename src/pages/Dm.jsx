@@ -324,7 +324,7 @@ function Dm() {
         const enrichMap = new Map(
           enrichResults
             .filter(Boolean)
-            .map((item) => [Number(item.roomId), item.partner])
+            .map((item) => [Number(item.roomId), item])
         );
 
         if (enrichMap.size > 0) {
@@ -335,9 +335,9 @@ function Dm() {
               ...room,
               partner: {
                 ...room.partner,
-                id: room.partner?.id ?? enriched.id ?? null,
-                name: isUnknownPartner(room.partner) ? enriched.name : room.partner?.name,
-                profileImage: room.partner?.profileImage ?? enriched.profileImage ?? null,
+                id: room.partner?.id ?? enriched.partner?.id ?? null,
+                name: isUnknownPartner(room.partner) ? enriched.partner?.name : room.partner?.name,
+                profileImage: room.partner?.profileImage ?? enriched.partner?.profileImage ?? null,
               },
               lastMessage: `${room.lastMessage || ''}`.trim() ? room.lastMessage : (enriched.lastMessage || ''),
             };
