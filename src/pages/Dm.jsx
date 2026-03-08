@@ -128,7 +128,14 @@ function Dm() {
     return {
       id: room?.roomId ?? room?.id ?? null,
       partner,
-      lastMessage: room?.lastMessage?.content ?? room?.lastMessageContent ?? room?.lastMessageText ?? '',
+      lastMessage: room?.lastMessage?.content
+        ?? room?.lastMessageContent
+        ?? room?.lastMessageText
+        ?? room?.latestMessage?.content
+        ?? room?.recentMessage?.content
+        ?? room?.latestMessageContent
+        ?? room?.recentMessageContent
+        ?? '',
       lastMessageId: room?.lastMessage?.id ?? room?.lastMessageId ?? room?.latestMessageId ?? room?.recentMessageId ?? null,
       lastMessageAt: room?.lastMessageAt ?? room?.updatedAt ?? room?.lastMessage?.createdAt ?? null,
       unreadCount: Number(room?.unreadCount ?? room?.unReadCount ?? 0),
@@ -266,6 +273,7 @@ function Dm() {
                   name: partnerFromMessages.senderName || room.partner?.name || '알 수 없음',
                   profileImage: partnerFromMessages.senderProfileImage ?? room.partner?.profileImage ?? null,
                 },
+                lastMessage: list.at(-1)?.content ?? room.lastMessage ?? '',
               };
             } catch (err) {
               return null;
@@ -291,6 +299,7 @@ function Dm() {
                 name: isUnknownPartner(room.partner) ? enriched.name : room.partner?.name,
                 profileImage: room.partner?.profileImage ?? enriched.profileImage ?? null,
               },
+              lastMessage: room.lastMessage || enriched.lastMessage || '',
             };
           }));
         }
@@ -635,7 +644,7 @@ function Dm() {
                           <span>{formatRoomTime(room.lastMessageAt)}</span>
                         </div>
                         <div className="dm-room-line">
-                          <p>{room.lastMessage || '메시지를 시작해 보세요.'}</p>
+                          <p>{room.lastMessage || ''}</p>
                           {room.unreadCount > 0 && <em>{room.unreadCount}</em>}
                         </div>
                       </div>
