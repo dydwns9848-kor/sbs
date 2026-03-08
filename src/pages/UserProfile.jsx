@@ -39,7 +39,6 @@ async function tryFetchUserPosts(authorId, accessToken) {
       });
 
       if (filtered.length > 0) return filtered;
-      if (req.params?.userId) return posts;
     } catch (err) {
       // 다음 API 시도
     }
@@ -96,12 +95,15 @@ function UserProfile() {
 
       if (userPosts.length > 0) {
         const first = userPosts[0];
-        const inferredName = first?.author?.name || first?.userName;
-        const inferredImage = first?.author?.profileImage || first?.userProfileImage || null;
-        setProfile((prev) => ({
-          name: inferredName || prev.name,
-          profileImage: inferredImage || prev.profileImage,
-        }));
+        const firstAuthorId = first?.author?.id || first?.userId;
+        if (Number(firstAuthorId) === Number(authorId)) {
+          const inferredName = first?.author?.name || first?.userName;
+          const inferredImage = first?.author?.profileImage || first?.userProfileImage || null;
+          setProfile((prev) => ({
+            name: inferredName || prev.name,
+            profileImage: inferredImage || prev.profileImage,
+          }));
+        }
       }
     } catch (err) {
       setError('프로필 정보를 불러오지 못했습니다.');
