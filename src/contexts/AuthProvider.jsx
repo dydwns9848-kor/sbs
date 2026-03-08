@@ -30,12 +30,21 @@ export function AuthProvider({ children }) {
     const profileImage = source.profileImage
       ?? source.userProfileImage
       ?? source.profileImageUrl
+      ?? source.profile_image
+      ?? source.profileImg
       ?? source.avatar
       ?? source.avatarUrl
+      ?? source.imageUrl
+      ?? source.profile?.profileImage
+      ?? source.profile?.userProfileImage
+      ?? source.profile?.imageUrl
       ?? fallback.profileImage
       ?? fallback.userProfileImage
       ?? fallback.profileImageUrl
+      ?? fallback.profile_image
+      ?? fallback.profileImg
       ?? fallback.avatar
+      ?? fallback.imageUrl
       ?? null;
 
     const safeProfileImage = (

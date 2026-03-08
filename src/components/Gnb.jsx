@@ -12,8 +12,14 @@ function GNB() {
   const userAvatarCandidate = user?.profileImage
     ?? user?.userProfileImage
     ?? user?.profileImageUrl
+    ?? user?.profile_image
+    ?? user?.profileImg
     ?? user?.avatar
     ?? user?.avatarUrl
+    ?? user?.imageUrl
+    ?? user?.profile?.profileImage
+    ?? user?.profile?.userProfileImage
+    ?? user?.profile?.imageUrl
     ?? null;
   const userAvatar = (
     typeof userAvatarCandidate === 'string'
@@ -65,8 +71,11 @@ function GNB() {
                   src={userAvatar || defaultUserImage}
                   alt="프로필"
                   className="gnb-user-avatar"
+                  onError={(e) => {
+                    e.currentTarget.src = defaultUserImage;
+                  }}
                 />
-                {user?.name || '내 프로필'}
+                <span className="gnb-user-name">{user?.name || '내 프로필'}</span>
               </Link>
               <button onClick={handleLogout} className="auth-link logout-button" type="button">
                 로그아웃

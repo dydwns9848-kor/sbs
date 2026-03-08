@@ -155,6 +155,11 @@ function Dm() {
     const createdAt = message?.createdAt ?? message?.sentAt ?? message?.createdDate ?? new Date().toISOString();
     const isMineByFlag = Boolean(message?.isMine ?? message?.mine ?? message?.me ?? false);
     const isMineById = Number(senderId) && Number(senderId) === Number(user?.id);
+    const isMineByName = Boolean(
+      user?.name
+      && senderName
+      && `${senderName}`.trim() === `${user.name}`.trim()
+    );
 
     return {
       id: message?.messageId ?? message?.id ?? `tmp-${Date.now()}`,
@@ -164,9 +169,9 @@ function Dm() {
       senderProfileImage,
       content: message?.content ?? message?.message ?? '',
       createdAt,
-      isMine: isMineByFlag || isMineById,
+      isMine: isMineByFlag || isMineById || isMineByName,
     };
-  }, [selectedRoomId, user?.id]);
+  }, [selectedRoomId, user?.id, user?.name]);
 
   const selectedRoom = useMemo(
     () => rooms.find((room) => Number(room.id) === Number(selectedRoomId)) || null,
@@ -336,7 +341,13 @@ function Dm() {
 
     try {
       const sentRaw = await sendMessage(selectedRoomId, trimmed);
-      const sent = normalizeMessage(sentRaw);
+      const normalizedSent = normalizeMessage(sentRaw);
+      const sent = {
+        ...normalizedSent,
+        isMine: true,
+        senderId: user?.id ?? normalizedSent.senderId,
+        senderName: user?.name || normalizedSent.senderName,
+      };
 
       setMessages((prev) => {
         const replaced = prev.map((message) => (message.id === optimistic.id ? sent : message));
@@ -525,7 +536,6 @@ function Dm() {
                     />
                     <div>
                       <strong>{selectedRoom.partner.name}</strong>
-                      <p>@{selectedRoom.partner.id || '-'}</p>
                     </div>
                   </button>
                 </header>
