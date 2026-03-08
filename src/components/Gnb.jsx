@@ -36,6 +36,11 @@ function GNB() {
           <Link to="/posts" className={`gnb-link ${location.pathname.startsWith('/posts') ? 'active' : ''}`}>
             게시글
           </Link>
+          {isAuthenticated && (
+            <Link to="/dm" className={`gnb-link ${location.pathname.startsWith('/dm') ? 'active' : ''}`}>
+              DM
+            </Link>
+          )}
         </div>
 
         <div className="gnb-right">

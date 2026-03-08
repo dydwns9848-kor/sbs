@@ -33,7 +33,33 @@ if (typeof window !== 'undefined') {
 
 export function getViewCount(post) {
   if (!post) return 0;
-  return post.viewCount ?? post.views ?? post.view_count ?? 0;
+  const candidates = [
+    post.viewCount,
+    post.views,
+    post.view_count,
+    post.viewCnt,
+    post.view_cnt,
+    post.viewsCount,
+    post.readCount,
+    post.read_count,
+    post.hitCount,
+    post.hit_count,
+    post.stats?.viewCount,
+    post.stats?.views,
+    post.statistics?.viewCount,
+    post.statistics?.views,
+    post.meta?.viewCount,
+    post.meta?.views,
+  ];
+
+  for (const candidate of candidates) {
+    const numeric = Number(candidate);
+    if (Number.isFinite(numeric) && numeric >= 0) {
+      return numeric;
+    }
+  }
+
+  return 0;
 }
 
 export function withViewCount(post, count) {
@@ -48,15 +74,17 @@ export function withViewCount(post, count) {
 }
 
 export function rememberViewCount(postId, count) {
-  cache.set(postId, count);
+  const numeric = Number(count);
+  cache.set(postId, Number.isFinite(numeric) && numeric >= 0 ? numeric : 0);
   persistCache();
 }
 
 export function applyCachedViewCount(post) {
   if (!post) return post;
   const cached = cache.get(post.id);
-  if (typeof cached !== 'number') return post;
-  return withViewCount(post, cached);
+  const server = getViewCount(post);
+  if (typeof cached !== 'number') return withViewCount(post, server);
+  return withViewCount(post, Math.max(server, cached));
 }
 
 export function applyCachedViewCounts(posts = []) {

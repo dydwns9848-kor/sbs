@@ -160,6 +160,10 @@ function UserProfile() {
     setIsFollowModalOpen(true);
   };
 
+  const handleOpenDm = () => {
+    navigate(`/dm?userId=${authorId}`);
+  };
+
   return (
     <>
       <GNB />
@@ -203,14 +207,19 @@ function UserProfile() {
                   프로필 수정
                 </button>
               ) : (
-                <button
-                  type="button"
-                  className={`user-profile-follow-btn ${isFollowing ? 'following' : ''}`}
-                  onClick={handleFollowToggle}
-                  disabled={isFollowMutating}
-                >
-                  {isFollowMutating ? '처리 중...' : isFollowing ? '언팔로우' : '팔로우'}
-                </button>
+                <div className="user-profile-action-group">
+                  <button
+                    type="button"
+                    className={`user-profile-follow-btn ${isFollowing ? 'following' : ''}`}
+                    onClick={handleFollowToggle}
+                    disabled={isFollowMutating}
+                  >
+                    {isFollowMutating ? '처리 중...' : isFollowing ? '언팔로우' : '팔로우'}
+                  </button>
+                  <button type="button" className="user-profile-dm-btn" onClick={handleOpenDm}>
+                    DM 보내기
+                  </button>
+                </div>
               )}
             </section>
 

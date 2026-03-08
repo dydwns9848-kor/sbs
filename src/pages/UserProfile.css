@@ -74,7 +74,6 @@
 }
 
 .user-profile-follow-btn {
-  margin-left: auto;
   border: 1px solid var(--line-strong);
   background: rgba(127, 230, 255, 0.12);
   color: var(--text);
@@ -103,6 +102,26 @@
 .user-profile-follow-btn.following {
   border-color: rgba(76, 255, 202, 0.5);
   background: rgba(76, 255, 202, 0.1);
+}
+
+.user-profile-action-group {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.user-profile-dm-btn {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.38rem 0.82rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.user-profile-dm-btn:hover {
+  border-color: var(--line-strong);
 }
 
 .user-profile-grid-section {
@@ -176,6 +195,10 @@
   }
 
   .user-profile-edit-btn {
+    margin-left: 0;
+  }
+
+  .user-profile-action-group {
     margin-left: 0;
   }
 }
