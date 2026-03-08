@@ -246,10 +246,12 @@ function Dm() {
       setRooms(sorted);
       setSelectedRoomId((prev) => (prev ? prev : sorted[0]?.id ?? null));
 
-      const unknownRooms = sorted.filter((room) => isUnknownPartner(room.partner));
-      if (unknownRooms.length > 0) {
+      const roomsNeedingEnrich = sorted.filter(
+        (room) => isUnknownPartner(room.partner) || !`${room.lastMessage || ''}`.trim()
+      );
+      if (roomsNeedingEnrich.length > 0) {
         const enrichResults = await Promise.all(
-          unknownRooms.map(async (room) => {
+          roomsNeedingEnrich.map(async (room) => {
             try {
               const rawMessages = await getMessages(room.id, undefined, 10);
               const list = extractList(rawMessages?.messages ? rawMessages.messages : rawMessages)
@@ -299,7 +301,7 @@ function Dm() {
                 name: isUnknownPartner(room.partner) ? enriched.name : room.partner?.name,
                 profileImage: room.partner?.profileImage ?? enriched.profileImage ?? null,
               },
-              lastMessage: room.lastMessage || enriched.lastMessage || '',
+              lastMessage: `${room.lastMessage || ''}`.trim() ? room.lastMessage : (enriched.lastMessage || ''),
             };
           }));
         }
@@ -644,7 +646,7 @@ function Dm() {
                           <span>{formatRoomTime(room.lastMessageAt)}</span>
                         </div>
                         <div className="dm-room-line">
-                          <p>{room.lastMessage || ''}</p>
+                          <p>{room.lastMessage || '메시지가 없습니다.'}</p>
                           {room.unreadCount > 0 && <em>{room.unreadCount}</em>}
                         </div>
                       </div>
