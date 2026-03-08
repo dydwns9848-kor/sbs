@@ -238,13 +238,70 @@ function Dm() {
       const sorted = sortByLatest(normalized);
       setRooms(sorted);
       setSelectedRoomId((prev) => (prev ? prev : sorted[0]?.id ?? null));
+
+      const unknownRooms = sorted.filter((room) => isUnknownPartner(room.partner));
+      if (unknownRooms.length > 0) {
+        const enrichResults = await Promise.all(
+          unknownRooms.map(async (room) => {
+            try {
+              const rawMessages = await getMessages(room.id, undefined, 10);
+              const list = extractList(rawMessages?.messages ? rawMessages.messages : rawMessages)
+                .map(normalizeMessage)
+                .filter((message) => message.id && message.content !== undefined);
+
+              const partnerFromMessages = list.find((message) => {
+                if (message.isMine) return false;
+                if (Number(message.senderId) && Number(message.senderId) !== Number(user?.id)) return true;
+                const senderName = `${message.senderName || ''}`.trim();
+                if (!senderName || senderName === '사용자') return false;
+                if (user?.name && senderName === user.name) return false;
+                return true;
+              });
+
+              if (!partnerFromMessages) return null;
+              return {
+                roomId: room.id,
+                partner: {
+                  id: partnerFromMessages.senderId ?? room.partner?.id ?? null,
+                  name: partnerFromMessages.senderName || room.partner?.name || '알 수 없음',
+                  profileImage: partnerFromMessages.senderProfileImage ?? room.partner?.profileImage ?? null,
+                },
+              };
+            } catch (err) {
+              return null;
+            }
+          })
+        );
+
+        const enrichMap = new Map(
+          enrichResults
+            .filter(Boolean)
+            .map((item) => [Number(item.roomId), item.partner])
+        );
+
+        if (enrichMap.size > 0) {
+          setRooms((prev) => prev.map((room) => {
+            const enriched = enrichMap.get(Number(room.id));
+            if (!enriched) return room;
+            return {
+              ...room,
+              partner: {
+                ...room.partner,
+                id: room.partner?.id ?? enriched.id ?? null,
+                name: isUnknownPartner(room.partner) ? enriched.name : room.partner?.name,
+                profileImage: room.partner?.profileImage ?? enriched.profileImage ?? null,
+              },
+            };
+          }));
+        }
+      }
     } catch (err) {
       setRooms([]);
       setRoomsError('DM 방 목록을 불러오지 못했습니다.');
     } finally {
       setRoomsLoading(false);
     }
-  }, [getMyRooms, normalizeRoom]);
+  }, [getMyRooms, normalizeRoom, getMessages, normalizeMessage, user?.id, user?.name]);
 
   const fetchMessages = useCallback(async (roomId, { beforeId, reset = false } = {}) => {
     if (!roomId) return;
