@@ -38,13 +38,24 @@ export function AuthProvider({ children }) {
       ?? source.profile?.profileImage
       ?? source.profile?.userProfileImage
       ?? source.profile?.imageUrl
+      ?? source.profile?.avatarUrl
+      ?? source.profile?.avatar
+      ?? source.profileImage?.url
+      ?? source.avatar?.url
+      ?? source.profile?.profileImage
+      ?? source.profile?.userProfileImage
+      ?? source.profile?.imageUrl
       ?? fallback.profileImage
       ?? fallback.userProfileImage
       ?? fallback.profileImageUrl
       ?? fallback.profile_image
       ?? fallback.profileImg
       ?? fallback.avatar
+      ?? fallback.avatarUrl
       ?? fallback.imageUrl
+      ?? fallback.profile?.profileImage
+      ?? fallback.profile?.userProfileImage
+      ?? fallback.profile?.imageUrl
       ?? null;
 
     const safeProfileImage = (
@@ -92,6 +103,7 @@ export function AuthProvider({ children }) {
 
       // localStorage?먯꽌 ??λ맂 ?ъ슜???뺣낫 ?뺤씤
       const savedUser = localStorage.getItem('user');
+      const parsedSavedUser = savedUser ? JSON.parse(savedUser) : null;
 
       // ?ъ슜???뺣낫媛 ?놁쑝硫?濡쒓렇???대젰???녿뒗 寃껋씠誘濡?API ?몄텧 遺덊븘??
       if (!savedUser) {
@@ -127,7 +139,7 @@ export function AuthProvider({ children }) {
           // 諛깆뿏?쒓? user ?뺣낫瑜?諛섑솚?섏? ?딆쑝硫?localStorage?먯꽌 媛?몄샂
           if (!userData) {
             console.log('諛깆뿏?쒓? user ?뺣낫瑜?諛섑솚?섏? ?딆쓬 - localStorage?먯꽌 蹂듭썝');
-            userData = JSON.parse(savedUser);
+            userData = parsedSavedUser;
           }
 
           console.log('?곹깭 ?낅뜲?댄듃 ??- user:', user);
@@ -135,7 +147,7 @@ export function AuthProvider({ children }) {
           console.log('?덈줈 ?ㅼ젙??userData:', userData);
           console.log('?덈줈 ?ㅼ젙??token:', token);
 
-          const normalizedUser = normalizeUserData(userData, user);
+          const normalizedUser = normalizeUserData(userData, parsedSavedUser || user);
           setUser(normalizedUser);
           setAccessToken(token);
 
@@ -179,7 +191,9 @@ export function AuthProvider({ children }) {
    * @param {string} token - accessToken
    */
   const login = (userData, token) => {
-    const normalizedUser = normalizeUserData(userData, user);
+    const savedUser = localStorage.getItem('user');
+    const parsedSavedUser = savedUser ? JSON.parse(savedUser) : null;
+    const normalizedUser = normalizeUserData(userData, parsedSavedUser || user);
     // ?곹깭 ?낅뜲?댄듃
     setUser(normalizedUser);
     setAccessToken(token);
@@ -302,7 +316,9 @@ export function AuthProvider({ children }) {
         // response.data.data 援ъ“: { accessToken, user: { id, email, name, role } }
         const newAccessToken = response.data.data.accessToken;
         const userData = response.data.data.user;
-        const normalizedUser = normalizeUserData(userData, user);
+        const savedUser = localStorage.getItem('user');
+        const parsedSavedUser = savedUser ? JSON.parse(savedUser) : null;
+        const normalizedUser = normalizeUserData(userData, parsedSavedUser || user);
 
         // ?곹깭 ?낅뜲?댄듃
         setUser(normalizedUser);
