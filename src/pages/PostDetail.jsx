@@ -10,6 +10,7 @@ import { API_CONFIG } from '../config';
 import { getViewCount, rememberViewCount } from '../utils/viewCount';
 import './PostDetail.css';
 import CommentSection from '../components/CommentSection';
+import FollowListModal from '../components/FollowListModal';
 
 function PostDetail() {
   const { id } = useParams();
@@ -31,6 +32,8 @@ function PostDetail() {
   const [followCounts, setFollowCounts] = useState({ followerCount: 0, followingCount: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
+  const [followModalTab, setFollowModalTab] = useState('followers');
 
   const handleCommentCountChange = (delta) => {
     setPost((prev) => (
@@ -279,6 +282,13 @@ function PostDetail() {
     });
   };
 
+  const handleOpenFollowModal = (e, tab) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFollowModalTab(tab);
+    setIsFollowModalOpen(true);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -308,10 +318,17 @@ function PostDetail() {
         ) : post ? (
           <div className="post-detail-card">
             <div className="post-detail-header">
-              <button
-                type="button"
+              <div
                 className="post-detail-author post-detail-author-link"
+                role="button"
+                tabIndex={0}
                 onClick={handleAuthorNavigate}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleAuthorNavigate();
+                  }
+                }}
               >
                 {authorImage ? (
                   <img src={authorImage} alt={authorName} className="post-detail-avatar" />
@@ -321,11 +338,25 @@ function PostDetail() {
                 <div className="post-detail-author-info">
                   <span className="post-detail-author-name">{authorName}</span>
                   <span className="post-detail-date">{formatDate(post.createdAt)}</span>
-                  <span className="post-detail-follow-meta">
-                    팔로워 {followCounts.followerCount} · 팔로잉 {followCounts.followingCount}
-                  </span>
+                  <div className="post-detail-follow-meta-actions">
+                    <button
+                      type="button"
+                      className="post-detail-follow-meta"
+                      onClick={(e) => handleOpenFollowModal(e, 'followers')}
+                    >
+                      팔로워 {followCounts.followerCount}
+                    </button>
+                    <span>·</span>
+                    <button
+                      type="button"
+                      className="post-detail-follow-meta"
+                      onClick={(e) => handleOpenFollowModal(e, 'followings')}
+                    >
+                      팔로잉 {followCounts.followingCount}
+                    </button>
+                  </div>
                 </div>
-              </button>
+              </div>
 
               <div className="post-detail-actions">
                 {isOwner ? (
@@ -400,6 +431,14 @@ function PostDetail() {
             onCommentCountChange={handleCommentCountChange}
           />
         )}
+        <FollowListModal
+          isOpen={isFollowModalOpen}
+          onClose={() => setIsFollowModalOpen(false)}
+          authorId={authorId}
+          authorName={authorName}
+          initialTab={followModalTab}
+          accessToken={accessToken}
+        />
       </div>
       <Footer />
     </>

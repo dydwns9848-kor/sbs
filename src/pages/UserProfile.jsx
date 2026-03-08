@@ -4,6 +4,7 @@ import axios from 'axios';
 
 import GNB from '../components/Gnb';
 import Footer from '../components/Footer';
+import FollowListModal from '../components/FollowListModal';
 import { API_CONFIG } from '../config';
 import { useAuth } from '../hooks/useAuth';
 import { useFollow } from '../hooks/useFollow';
@@ -63,6 +64,8 @@ function UserProfile() {
   });
   const [followCounts, setFollowCounts] = useState({ followerCount: 0, followingCount: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
+  const [followModalTab, setFollowModalTab] = useState('followers');
 
   const authorId = Number(id);
   const isOwner = Boolean(user && Number(user.id) === authorId);
@@ -152,6 +155,11 @@ function UserProfile() {
     navigate('/profile');
   };
 
+  const handleOpenFollowModal = (tab) => {
+    setFollowModalTab(tab);
+    setIsFollowModalOpen(true);
+  };
+
   return (
     <>
       <GNB />
@@ -171,9 +179,23 @@ function UserProfile() {
 
               <div className="user-profile-meta">
                 <h1>{profile.name}</h1>
-                <p>
-                  팔로워 {followCounts.followerCount} · 팔로잉 {followCounts.followingCount}
-                </p>
+                <div className="user-profile-follow-meta-actions">
+                  <button
+                    type="button"
+                    className="user-profile-follow-meta"
+                    onClick={() => handleOpenFollowModal('followers')}
+                  >
+                    팔로워 {followCounts.followerCount}
+                  </button>
+                  <span>·</span>
+                  <button
+                    type="button"
+                    className="user-profile-follow-meta"
+                    onClick={() => handleOpenFollowModal('followings')}
+                  >
+                    팔로잉 {followCounts.followingCount}
+                  </button>
+                </div>
               </div>
 
               {isOwner ? (
@@ -213,6 +235,14 @@ function UserProfile() {
           </>
         )}
       </div>
+      <FollowListModal
+        isOpen={isFollowModalOpen}
+        onClose={() => setIsFollowModalOpen(false)}
+        authorId={authorId}
+        authorName={profile.name}
+        initialTab={followModalTab}
+        accessToken={accessToken}
+      />
       <Footer />
     </>
   );

@@ -53,6 +53,26 @@
   font-size: 0.82rem;
 }
 
+.user-profile-follow-meta-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--text-muted);
+}
+
+.user-profile-follow-meta {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.user-profile-follow-meta:hover {
+  color: var(--brand-cyan);
+}
+
 .user-profile-follow-btn {
   margin-left: auto;
   border: 1px solid var(--line-strong);

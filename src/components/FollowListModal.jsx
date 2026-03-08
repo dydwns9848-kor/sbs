@@ -51,12 +51,7 @@ function FollowListModal({
           ? await getFollowers(authorId, page, 10)
           : await getFollowings(authorId, page, 10);
 
-        const normalized = {
-          content: raw?.content || [],
-          totalPages: Number(raw?.totalPages || 1),
-          number: Number(raw?.number || 0),
-          totalElements: Number(raw?.totalElements || 0),
-        };
+        const normalized = normalizeListResult(raw);
 
         if (!cancelled) {
           setResult(normalized);
@@ -84,6 +79,41 @@ function FollowListModal({
       cancelled = true;
     };
   }, [isOpen, authorId, activeTab, page, getFollowers, getFollowings]);
+
+  const normalizeListResult = (payload) => {
+    if (!payload) {
+      return {
+        content: [],
+        totalPages: 1,
+        number: 0,
+        totalElements: 0,
+      };
+    }
+
+    const source = payload?.data && typeof payload.data === 'object'
+      ? payload.data
+      : payload;
+    const content = Array.isArray(source)
+      ? source
+      : source?.content || source?.users || source?.items || source?.list || [];
+
+    const totalPages = Number(
+      source?.totalPages ?? source?.totalPage ?? source?.pageInfo?.totalPages ?? 1
+    );
+    const number = Number(
+      source?.number ?? source?.page ?? source?.pageNumber ?? source?.pageInfo?.page ?? 0
+    );
+    const totalElements = Number(
+      source?.totalElements ?? source?.totalCount ?? source?.count ?? content.length ?? 0
+    );
+
+    return {
+      content: Array.isArray(content) ? content : [],
+      totalPages: Number.isFinite(totalPages) && totalPages > 0 ? totalPages : 1,
+      number: Number.isFinite(number) && number >= 0 ? number : 0,
+      totalElements: Number.isFinite(totalElements) && totalElements >= 0 ? totalElements : 0,
+    };
+  };
 
   const title = useMemo(
     () => `${authorName || 'User'} · ${activeTab === 'followers' ? 'Followers' : 'Following'}`,
