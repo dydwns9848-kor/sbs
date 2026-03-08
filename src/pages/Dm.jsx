@@ -32,16 +32,38 @@ function Dm() {
   const messageBodyRef = useRef(null);
   const targetUserIdParam = useMemo(() => Number(searchParams.get('userId')), [searchParams]);
 
+  const extractUserId = useCallback((target) => (
+    target?.id
+    ?? target?.userId
+    ?? target?.memberId
+    ?? target?.accountId
+    ?? target?.uid
+    ?? null
+  ), []);
+
   const normalizeUser = useCallback((target) => {
     if (!target || typeof target !== 'object') {
       return { id: null, name: '알 수 없음', profileImage: null };
     }
+    const id = extractUserId(target);
+    const name = target.name
+      ?? target.userName
+      ?? target.username
+      ?? target.nickname
+      ?? target.displayName
+      ?? (id ? `사용자 ${id}` : '알 수 없음');
+
     return {
-      id: target.id ?? target.userId ?? null,
-      name: target.name ?? target.userName ?? target.nickname ?? '알 수 없음',
-      profileImage: target.profileImage ?? target.userProfileImage ?? null,
+      id,
+      name,
+      profileImage: target.profileImage
+        ?? target.userProfileImage
+        ?? target.avatar
+        ?? target.avatarUrl
+        ?? target.imageUrl
+        ?? null,
     };
-  }, []);
+  }, [extractUserId]);
 
   const normalizeRoom = useCallback((room) => {
     const members = Array.isArray(room?.participants)
@@ -49,8 +71,43 @@ function Dm() {
       : Array.isArray(room?.members)
         ? room.members
         : [];
-    const partnerFromMembers = members.find((member) => Number(member?.id ?? member?.userId) !== Number(user?.id));
-    const partnerCandidate = room?.targetUser || room?.otherUser || room?.opponent || room?.partner || partnerFromMembers;
+    const normalizedMembers = members.map((member) => normalizeUser(member?.user || member));
+    const partnerFromMembers = normalizedMembers.find(
+      (member) => Number(member?.id) && Number(member?.id) !== Number(user?.id)
+    );
+
+    const partnerFromFlatFields = normalizeUser({
+      id: room?.targetUserId
+        ?? room?.otherUserId
+        ?? room?.opponentUserId
+        ?? room?.partnerUserId
+        ?? room?.receiverId
+        ?? room?.chatPartnerId
+        ?? null,
+      name: room?.targetUserName
+        ?? room?.otherUserName
+        ?? room?.opponentName
+        ?? room?.partnerName
+        ?? room?.receiverName
+        ?? room?.chatPartnerName
+        ?? room?.lastMessage?.senderName
+        ?? null,
+      profileImage: room?.targetUserProfileImage
+        ?? room?.otherUserProfileImage
+        ?? room?.opponentProfileImage
+        ?? room?.partnerProfileImage
+        ?? room?.receiverProfileImage
+        ?? room?.chatPartnerProfileImage
+        ?? null,
+    });
+
+    const partnerCandidate =
+      room?.targetUser
+      || room?.otherUser
+      || room?.opponent
+      || room?.partner
+      || partnerFromMembers
+      || partnerFromFlatFields;
     const partner = normalizeUser(partnerCandidate);
 
     return {
