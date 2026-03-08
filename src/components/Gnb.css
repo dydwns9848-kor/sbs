@@ -44,6 +44,9 @@
 }
 
 .gnb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   color: var(--text-muted);
   text-decoration: none;
   font-size: 0.92rem;
@@ -164,6 +167,19 @@
     width: 24px;
     height: 24px;
   }
+}
+
+.gnb-dm-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #041017;
+  background: linear-gradient(120deg, var(--brand-cyan), var(--brand-mint));
 }
 
 @media (max-width: 640px) {

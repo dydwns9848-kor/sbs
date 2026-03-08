@@ -178,11 +178,31 @@ function Dm() {
       senderId,
       senderName,
       senderProfileImage,
-      content: message?.content ?? message?.message ?? '',
+      content: message?.content
+        ?? message?.message
+        ?? message?.messageContent
+        ?? message?.text
+        ?? message?.body
+        ?? '',
       createdAt,
       isMine: isMineByFlag || isMineById || isMineByName,
     };
   }, [selectedRoomId, user?.id, user?.name]);
+
+  const pickLatestMessageText = useCallback((messages = []) => {
+    if (!Array.isArray(messages) || messages.length === 0) return '';
+    const withContent = messages.filter((m) => `${m?.content || ''}`.trim().length > 0);
+    if (withContent.length === 0) return '';
+
+    const latest = [...withContent].sort((a, b) => {
+      const at = new Date(a?.createdAt || 0).getTime();
+      const bt = new Date(b?.createdAt || 0).getTime();
+      if (at === bt) return Number(b?.id || 0) - Number(a?.id || 0);
+      return bt - at;
+    })[0];
+
+    return `${latest?.content || ''}`.trim();
+  }, []);
 
   const selectedRoom = useMemo(
     () => rooms.find((room) => Number(room.id) === Number(selectedRoomId)) || null,
@@ -243,7 +263,25 @@ function Dm() {
         .map(normalizeRoom)
         .filter((room) => room.id);
       const sorted = sortByLatest(normalized);
-      setRooms(sorted);
+      setRooms((prev) => {
+        const prevMap = new Map(prev.map((room) => [Number(room.id), room]));
+        return sorted.map((room) => {
+          const old = prevMap.get(Number(room.id));
+          if (!old) return room;
+
+          const shouldKeepPartner = isUnknownPartner(room.partner) && !isUnknownPartner(old.partner);
+          const nextPartner = shouldKeepPartner ? old.partner : room.partner;
+          const nextLastMessage = `${room.lastMessage || ''}`.trim()
+            ? room.lastMessage
+            : (old.lastMessage || '');
+
+          return {
+            ...room,
+            partner: nextPartner,
+            lastMessage: nextLastMessage,
+          };
+        });
+      });
       setSelectedRoomId((prev) => (prev ? prev : sorted[0]?.id ?? null));
 
       const roomsNeedingEnrich = sorted.filter(
@@ -266,16 +304,16 @@ function Dm() {
                 if (user?.name && senderName === user.name) return false;
                 return true;
               });
-
-              if (!partnerFromMessages) return null;
+              const latestMessageText = pickLatestMessageText(list);
+              if (!partnerFromMessages && !latestMessageText) return null;
               return {
                 roomId: room.id,
                 partner: {
-                  id: partnerFromMessages.senderId ?? room.partner?.id ?? null,
-                  name: partnerFromMessages.senderName || room.partner?.name || '알 수 없음',
-                  profileImage: partnerFromMessages.senderProfileImage ?? room.partner?.profileImage ?? null,
+                  id: partnerFromMessages?.senderId ?? room.partner?.id ?? null,
+                  name: partnerFromMessages?.senderName || room.partner?.name || '알 수 없음',
+                  profileImage: partnerFromMessages?.senderProfileImage ?? room.partner?.profileImage ?? null,
                 },
-                lastMessage: list.at(-1)?.content ?? room.lastMessage ?? '',
+                lastMessage: latestMessageText || room.lastMessage || '',
               };
             } catch (err) {
               return null;
@@ -312,7 +350,7 @@ function Dm() {
     } finally {
       setRoomsLoading(false);
     }
-  }, [getMyRooms, normalizeRoom, getMessages, normalizeMessage, user?.id, user?.name]);
+  }, [getMyRooms, normalizeRoom, getMessages, normalizeMessage, user?.id, user?.name, pickLatestMessageText]);
 
   const fetchMessages = useCallback(async (roomId, { beforeId, reset = false } = {}) => {
     if (!roomId) return;
@@ -558,6 +596,18 @@ function Dm() {
     if (!messageBodyRef.current) return;
     messageBodyRef.current.scrollTop = messageBodyRef.current.scrollHeight;
   }, [messages.length, selectedRoomId]);
+
+  useEffect(() => {
+    const totalUnread = rooms.reduce(
+      (sum, room) => sum + Number(room?.unreadCount ?? 0),
+      0
+    );
+    window.dispatchEvent(
+      new CustomEvent('dm-unread-changed', {
+        detail: { count: Number.isFinite(totalUnread) ? totalUnread : 0 },
+      })
+    );
+  }, [rooms]);
 
   if (authLoading) {
     return (

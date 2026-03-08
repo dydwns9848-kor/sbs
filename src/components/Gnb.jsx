@@ -1,12 +1,16 @@
-﻿import { Link, useLocation, useNavigate } from 'react-router-dom';
+﻿import { useCallback, useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useDm } from '../hooks/useDm';
 import './Gnb.css';
 import defaultUserImage from '../assets/default_user.png';
 
 function GNB() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout, accessToken } = useAuth();
+  const { getMyRooms } = useDm(accessToken);
+  const [dmUnreadCount, setDmUnreadCount] = useState(0);
 
   const profilePath = user?.id ? `/users/${user.id}` : '/profile';
   const userAvatarCandidate = user?.profileImage
@@ -41,6 +45,61 @@ function GNB() {
     }
   };
 
+  const fetchDmUnreadCount = useCallback(async () => {
+    if (!isAuthenticated || !accessToken) {
+      setDmUnreadCount(0);
+      return;
+    }
+
+    try {
+      const raw = await getMyRooms(0, 50);
+      const list = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.content)
+          ? raw.content
+          : Array.isArray(raw?.rooms)
+            ? raw.rooms
+            : [];
+      const total = list.reduce(
+        (sum, room) => sum + Number(room?.unreadCount ?? room?.unReadCount ?? 0),
+        0
+      );
+      setDmUnreadCount(Number.isFinite(total) ? total : 0);
+    } catch (error) {
+      setDmUnreadCount(0);
+    }
+  }, [isAuthenticated, accessToken, getMyRooms]);
+
+  useEffect(() => {
+    fetchDmUnreadCount();
+  }, [fetchDmUnreadCount]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !accessToken) return undefined;
+
+    const onFocus = () => {
+      fetchDmUnreadCount();
+    };
+    const onUnreadChanged = (event) => {
+      const next = Number(event?.detail?.count);
+      if (Number.isFinite(next) && next >= 0) {
+        setDmUnreadCount(next);
+      } else {
+        fetchDmUnreadCount();
+      }
+    };
+
+    const timer = window.setInterval(fetchDmUnreadCount, 20000);
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('dm-unread-changed', onUnreadChanged);
+
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('dm-unread-changed', onUnreadChanged);
+    };
+  }, [isAuthenticated, accessToken, fetchDmUnreadCount]);
+
   return (
     <nav className="gnb">
       <div className="gnb-container">
@@ -54,6 +113,9 @@ function GNB() {
           {isAuthenticated && (
             <Link to="/dm" className={`gnb-link ${location.pathname.startsWith('/dm') ? 'active' : ''}`}>
               DM
+              {dmUnreadCount > 0 && (
+                <span className="gnb-dm-badge">{dmUnreadCount > 99 ? '99+' : dmUnreadCount}</span>
+              )}
             </Link>
           )}
           <Link to="/feed" className={`gnb-link ${location.pathname.startsWith('/feed') ? 'active' : ''}`}>
