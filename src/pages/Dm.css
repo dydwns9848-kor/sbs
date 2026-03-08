@@ -217,7 +217,14 @@
 
 .dm-message-item.mine {
   justify-content: flex-end;
-  flex-direction: row-reverse;
+}
+
+.dm-message-item.mine .dm-bubble {
+  order: 1;
+}
+
+.dm-message-item.mine .dm-message-avatar {
+  order: 2;
 }
 
 .dm-message-avatar {
