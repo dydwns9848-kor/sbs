@@ -30,6 +30,8 @@ function Dm() {
   const [draft, setDraft] = useState('');
   const [isSending, setIsSending] = useState(false);
   const messageBodyRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileView, setMobileView] = useState('list');
   const targetUserIdParam = useMemo(() => Number(searchParams.get('userId')), [searchParams]);
   const myProfileImage = useMemo(() => {
     const candidate = user?.profileImage
@@ -318,6 +320,17 @@ function Dm() {
     await fetchMessages(selectedRoomId, { beforeId: oldestMessageId, reset: false });
   };
 
+  const handleSelectRoom = (roomId) => {
+    setSelectedRoomId(roomId);
+    if (isMobile) {
+      setMobileView('chat');
+    }
+  };
+
+  const handleBackToList = () => {
+    setMobileView('list');
+  };
+
   const formatRoomTime = (value) => {
     if (!value) return '';
     const date = new Date(value);
@@ -393,6 +406,19 @@ function Dm() {
   };
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 980px)');
+    const apply = () => {
+      const nextIsMobile = mediaQuery.matches;
+      setIsMobile(nextIsMobile);
+      setMobileView((prev) => (nextIsMobile ? prev : 'chat'));
+    };
+
+    apply();
+    mediaQuery.addEventListener('change', apply);
+    return () => mediaQuery.removeEventListener('change', apply);
+  }, []);
+
+  useEffect(() => {
     if (authLoading || !isAuthenticated || !accessToken) return;
     fetchRooms();
   }, [authLoading, isAuthenticated, accessToken, fetchRooms]);
@@ -424,6 +450,9 @@ function Dm() {
           return sortByLatest(next);
         });
         setSelectedRoomId(normalized.id);
+        if (isMobile) {
+          setMobileView('chat');
+        }
         navigate('/dm', { replace: true });
       } catch (err) {
         alert('DM 방을 여는 데 실패했습니다.');
@@ -431,7 +460,7 @@ function Dm() {
     };
 
     openTargetRoom();
-  }, [authLoading, isAuthenticated, accessToken, targetUserIdParam, user?.id, createOrGetRoom, normalizeRoom, navigate]);
+  }, [authLoading, isAuthenticated, accessToken, targetUserIdParam, user?.id, createOrGetRoom, normalizeRoom, navigate, isMobile]);
 
   useEffect(() => {
     if (!messageBodyRef.current) return;
@@ -470,7 +499,7 @@ function Dm() {
       <GNB />
       <main className="dm-container">
         <div className="dm-shell">
-          <aside className="dm-room-list">
+          <aside className={`dm-room-list ${isMobile && mobileView === 'chat' ? 'mobile-hidden' : ''}`}>
             <div className="dm-room-list-header">
               <h1>DM</h1>
               <button type="button" onClick={fetchRooms} className="dm-refresh-btn">
@@ -490,13 +519,13 @@ function Dm() {
                   <li key={room.id}>
                     <div
                       className={`dm-room-item ${Number(selectedRoomId) === Number(room.id) ? 'active' : ''}`}
-                      onClick={() => setSelectedRoomId(room.id)}
+                      onClick={() => handleSelectRoom(room.id)}
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          setSelectedRoomId(room.id);
+                          handleSelectRoom(room.id);
                         }
                       }}
                     >
@@ -536,12 +565,17 @@ function Dm() {
             )}
           </aside>
 
-          <section className="dm-room-panel">
+          <section className={`dm-room-panel ${isMobile && mobileView === 'list' ? 'mobile-hidden' : ''}`}>
             {!selectedRoom ? (
               <div className="dm-panel-empty">대화방을 선택해 주세요.</div>
             ) : (
               <>
                 <header className="dm-panel-header">
+                  {isMobile && (
+                    <button type="button" className="dm-mobile-back" onClick={handleBackToList}>
+                      목록
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="dm-panel-user"

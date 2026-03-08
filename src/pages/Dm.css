@@ -168,6 +168,9 @@
 .dm-panel-header {
   padding: 0.85rem 0.95rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .dm-panel-user {
@@ -178,6 +181,15 @@
   align-items: center;
   gap: 0.58rem;
   padding: 0;
+}
+
+.dm-mobile-back {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  border-radius: 999px;
+  font-size: 0.74rem;
+  padding: 0.22rem 0.62rem;
 }
 
 .dm-panel-user p {
@@ -350,12 +362,16 @@
 
   .dm-room-list {
     border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    max-height: 280px;
+    border-bottom: 0;
+    max-height: none;
   }
 
   .dm-room-panel {
     min-height: 58vh;
+  }
+
+  .mobile-hidden {
+    display: none;
   }
 
   .dm-input-form {
