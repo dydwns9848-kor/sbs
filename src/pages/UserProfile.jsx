@@ -47,6 +47,39 @@ async function tryFetchUserPosts(authorId, accessToken) {
   return [];
 }
 
+async function tryFetchUserProfile(authorId, accessToken) {
+  const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+  const withCredentials = true;
+
+  const candidates = [
+    { url: `${API_CONFIG.baseUrl}/users/${authorId}` },
+    { url: `${API_CONFIG.baseUrl}/users/${authorId}/profile` },
+    { url: `${API_CONFIG.baseUrl}/user/${authorId}` },
+  ];
+
+  for (const req of candidates) {
+    try {
+      const response = await axios.get(req.url, {
+        headers,
+        withCredentials,
+      });
+      const data = response.data?.data ?? response.data ?? null;
+      if (!data || typeof data !== 'object') continue;
+
+      const name = data.name || data.userName || data.nickname || null;
+      const profileImage = data.profileImage || data.userProfileImage || data.profileImageUrl || null;
+
+      if (name || profileImage) {
+        return { name, profileImage };
+      }
+    } catch (err) {
+      // 다음 API 시도
+    }
+  }
+
+  return null;
+}
+
 function UserProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -58,7 +91,7 @@ function UserProfile() {
   const [error, setError] = useState(null);
   const [posts, setPosts] = useState([]);
   const [profile, setProfile] = useState({
-    name: location.state?.authorName || `User ${id}`,
+    name: location.state?.authorName || '',
     profileImage: location.state?.authorImage || null,
   });
   const [followCounts, setFollowCounts] = useState({ followerCount: 0, followingCount: 0 });
@@ -73,10 +106,11 @@ function UserProfile() {
     setIsLoading(true);
     setError(null);
     try {
-      const [counts, following, userPosts] = await Promise.all([
+      const [counts, following, userPosts, profileResult] = await Promise.all([
         getFollowCounts(authorId),
         isAuthenticated && !isOwner ? checkFollowing(authorId) : Promise.resolve(false),
         tryFetchUserPosts(authorId, accessToken),
+        !isOwner ? tryFetchUserProfile(authorId, accessToken) : Promise.resolve(null),
       ]);
 
       setFollowCounts({
@@ -90,6 +124,11 @@ function UserProfile() {
         setProfile((prev) => ({
           name: user?.name || prev.name,
           profileImage: user?.profileImage || prev.profileImage,
+        }));
+      } else if (profileResult) {
+        setProfile((prev) => ({
+          name: profileResult.name || prev.name,
+          profileImage: profileResult.profileImage || prev.profileImage,
         }));
       }
 
@@ -105,12 +144,17 @@ function UserProfile() {
           }));
         }
       }
+
+      setProfile((prev) => ({
+        name: prev.name || `User ${id}`,
+        profileImage: prev.profileImage || null,
+      }));
     } catch (err) {
       setError('프로필 정보를 불러오지 못했습니다.');
     } finally {
       setIsLoading(false);
     }
-  }, [authorId, getFollowCounts, checkFollowing, isAuthenticated, isOwner, accessToken, user]);
+  }, [authorId, id, getFollowCounts, checkFollowing, isAuthenticated, isOwner, accessToken, user]);
 
   useEffect(() => {
     loadPage();
