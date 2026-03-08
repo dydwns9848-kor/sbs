@@ -414,11 +414,17 @@ function Dm() {
     }
   }, [getMessages, markAsRead, normalizeMessage, user?.id, user?.name]);
 
-  const handleOpenPartnerProfile = (e, partnerId) => {
+  const handleOpenPartnerProfile = (e, partner) => {
     e.preventDefault();
     e.stopPropagation();
+    const partnerId = partner?.id;
     if (!partnerId) return;
-    navigate(`/users/${partnerId}`);
+    navigate(`/users/${partnerId}`, {
+      state: {
+        authorName: partner?.name || '',
+        authorImage: partner?.profileImage || null,
+      },
+    });
   };
 
   const handleLoadMoreMessages = async () => {
@@ -674,7 +680,7 @@ function Dm() {
                       <button
                         type="button"
                         className="dm-partner-link"
-                        onClick={(e) => handleOpenPartnerProfile(e, room.partner.id)}
+                        onClick={(e) => handleOpenPartnerProfile(e, room.partner)}
                         disabled={!room.partner.id}
                       >
                         <img
@@ -688,7 +694,7 @@ function Dm() {
                           <button
                             type="button"
                             className="dm-partner-name"
-                            onClick={(e) => handleOpenPartnerProfile(e, room.partner.id)}
+                            onClick={(e) => handleOpenPartnerProfile(e, room.partner)}
                             disabled={!room.partner.id}
                           >
                             {room.partner.name}
@@ -721,7 +727,7 @@ function Dm() {
                   <button
                     type="button"
                     className="dm-panel-user"
-                    onClick={(e) => handleOpenPartnerProfile(e, selectedRoom.partner.id)}
+                    onClick={(e) => handleOpenPartnerProfile(e, selectedRoom.partner)}
                     disabled={!selectedRoom.partner.id}
                   >
                     <img

@@ -5,6 +5,17 @@ import { useDm } from '../hooks/useDm';
 import './Gnb.css';
 import defaultUserImage from '../assets/default_user.png';
 
+function normalizeImageUrl(value) {
+  if (!value || typeof value !== 'string') return null;
+  const raw = value.trim().replace(/^"+|"+$/g, '');
+  if (!raw || ['null', 'undefined'].includes(raw.toLowerCase())) return null;
+  if (raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('//')) return `${window.location.protocol}${raw}`;
+  if (raw.startsWith('/')) return `${window.location.origin}${raw}`;
+  return `${window.location.origin}/${raw.replace(/^\.?\//, '')}`;
+}
+
 function GNB() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,7 +41,7 @@ function GNB() {
     && ['null', 'undefined', ''].includes(userAvatarCandidate.trim().toLowerCase())
   )
     ? null
-    : userAvatarCandidate;
+    : normalizeImageUrl(userAvatarCandidate);
 
   const handleLogout = async () => {
     if (!window.confirm('로그아웃 하시겠습니까?')) return;

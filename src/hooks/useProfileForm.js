@@ -7,6 +7,17 @@ import {
   VALIDATION_MESSAGES,
 } from '../config';
 
+const normalizeImageUrl = (value) => {
+  if (!value || typeof value !== 'string') return value;
+  const raw = value.trim().replace(/^"+|"+$/g, '').replace(/\\/g, '/');
+  if (!raw || ['null', 'undefined'].includes(raw.toLowerCase())) return null;
+  if (raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('//')) return `${window.location.protocol}${raw}`;
+  if (raw.startsWith('/')) return `${window.location.origin}${raw}`;
+  return `${window.location.origin}/${raw.replace(/^\.?\//, '')}`;
+};
+
 export function useProfileForm(accessToken, onProfileUpdated) {
   const [formData, setFormData] = useState({
     name: '',
@@ -228,7 +239,7 @@ export function useProfileForm(accessToken, onProfileUpdated) {
 
         onProfileUpdated({
           name: responseProfile.name ?? requestData.name,
-          profileImage: responseProfile.profileImage ?? profileImageForUi,
+          profileImage: normalizeImageUrl(responseProfile.profileImage ?? profileImageForUi),
           firstName: responseProfile.firstName ?? requestData.firstName,
           lastName: responseProfile.lastName ?? requestData.lastName,
           phoneNumber: responseProfile.phoneNumber ?? requestData.phoneNumber,
