@@ -31,6 +31,18 @@ function Dm() {
   const [isSending, setIsSending] = useState(false);
   const messageBodyRef = useRef(null);
   const targetUserIdParam = useMemo(() => Number(searchParams.get('userId')), [searchParams]);
+  const myProfileImage = useMemo(() => {
+    const candidate = user?.profileImage
+      ?? user?.userProfileImage
+      ?? user?.profileImageUrl
+      ?? user?.avatar
+      ?? user?.avatarUrl
+      ?? null;
+    if (typeof candidate === 'string' && ['null', 'undefined', ''].includes(candidate.trim().toLowerCase())) {
+      return null;
+    }
+    return candidate;
+  }, [user]);
 
   const extractUserId = useCallback((target) => (
     target?.id
@@ -127,17 +139,32 @@ function Dm() {
   const normalizeMessage = useCallback((message) => {
     const sender = message?.sender || message?.user || null;
     const senderId = message?.senderId ?? message?.userId ?? sender?.id ?? null;
-    const senderName = message?.senderName ?? sender?.name ?? sender?.userName ?? '사용자';
+    const senderName = message?.senderName
+      ?? message?.writerName
+      ?? message?.userName
+      ?? sender?.name
+      ?? sender?.userName
+      ?? sender?.nickname
+      ?? '사용자';
+    const senderProfileImage = message?.senderProfileImage
+      ?? message?.userProfileImage
+      ?? sender?.profileImage
+      ?? sender?.userProfileImage
+      ?? sender?.avatar
+      ?? null;
     const createdAt = message?.createdAt ?? message?.sentAt ?? message?.createdDate ?? new Date().toISOString();
+    const isMineByFlag = Boolean(message?.isMine ?? message?.mine ?? message?.me ?? false);
+    const isMineById = Number(senderId) && Number(senderId) === Number(user?.id);
 
     return {
       id: message?.messageId ?? message?.id ?? `tmp-${Date.now()}`,
       roomId: message?.roomId ?? message?.dmRoomId ?? selectedRoomId,
       senderId,
       senderName,
+      senderProfileImage,
       content: message?.content ?? message?.message ?? '',
       createdAt,
-      isMine: Number(senderId) === Number(user?.id),
+      isMine: isMineByFlag || isMineById,
     };
   }, [selectedRoomId, user?.id]);
 
@@ -215,9 +242,14 @@ function Dm() {
         return sortMessages(Array.from(uniq.values()));
       });
 
-      const partnerFromMessages = list.find(
-        (message) => Number(message.senderId) && Number(message.senderId) !== Number(user?.id)
-      );
+      const partnerFromMessages = list.find((message) => {
+        if (message.isMine) return false;
+        if (Number(message.senderId) && Number(message.senderId) !== Number(user?.id)) return true;
+        const senderName = `${message.senderName || ''}`.trim();
+        if (!senderName || senderName === '사용자') return false;
+        if (user?.name && senderName === user.name) return false;
+        return true;
+      });
       if (partnerFromMessages) {
         setRooms((prev) => prev.map((room) => {
           if (Number(room.id) !== Number(roomId)) return room;
@@ -228,6 +260,7 @@ function Dm() {
               ...room.partner,
               id: room.partner?.id ?? partnerFromMessages.senderId ?? null,
               name: keepName ? room.partner?.name : (partnerFromMessages.senderName || room.partner?.name || '알 수 없음'),
+              profileImage: room.partner?.profileImage ?? partnerFromMessages.senderProfileImage ?? null,
             },
           };
         }));
@@ -245,7 +278,7 @@ function Dm() {
     } finally {
       setMessagesLoading(false);
     }
-  }, [getMessages, markAsRead, normalizeMessage, user?.id]);
+  }, [getMessages, markAsRead, normalizeMessage, user?.id, user?.name]);
 
   const handleOpenPartnerProfile = (e, partnerId) => {
     e.preventDefault();
@@ -522,6 +555,11 @@ function Dm() {
                           key={message.id}
                           className={`dm-message-item ${message.isMine ? 'mine' : ''}`}
                         >
+                          <img
+                            src={(message.isMine ? myProfileImage : (message.senderProfileImage || selectedRoom.partner.profileImage)) || defaultUserImage}
+                            alt={message.isMine ? '내 프로필' : message.senderName}
+                            className="dm-message-avatar"
+                          />
                           <div className="dm-bubble">
                             {!message.isMine && <strong>{message.senderName}</strong>}
                             <p>{message.content}</p>
@@ -534,6 +572,7 @@ function Dm() {
                 </div>
 
                 <form className="dm-input-form" onSubmit={handleSendMessage}>
+                  <img src={myProfileImage || defaultUserImage} alt="내 프로필" className="dm-input-avatar" />
                   <textarea
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}

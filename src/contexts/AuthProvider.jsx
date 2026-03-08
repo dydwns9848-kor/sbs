@@ -22,6 +22,36 @@ export function AuthProvider({ children }) {
   // 濡쒕뵫 ?곹깭 (珥덇린 濡쒕뱶 ??localStorage?먯꽌 ?곗씠?곕? 遺덈윭?ㅻ뒗 ?숈븞)
   const [isLoading, setIsLoading] = useState(true);
 
+  const normalizeUserData = (incomingUser, fallbackUser = null) => {
+    if (!incomingUser && !fallbackUser) return null;
+    const source = incomingUser || fallbackUser || {};
+    const fallback = fallbackUser || {};
+
+    const profileImage = source.profileImage
+      ?? source.userProfileImage
+      ?? source.profileImageUrl
+      ?? source.avatar
+      ?? source.avatarUrl
+      ?? fallback.profileImage
+      ?? fallback.userProfileImage
+      ?? fallback.profileImageUrl
+      ?? fallback.avatar
+      ?? null;
+
+    const safeProfileImage = (
+      typeof profileImage === 'string'
+      && ['null', 'undefined', ''].includes(profileImage.trim().toLowerCase())
+    )
+      ? null
+      : profileImage;
+
+    return {
+      ...fallback,
+      ...source,
+      profileImage: safeProfileImage ?? null,
+    };
+  };
+
   /**
    * useEffect: 而댄룷?뚰듃 留덉슫????/refresh API瑜??몄텧?섏뿬 ?몄쬆 ?뺣낫 蹂듭썝
    *
@@ -96,11 +126,12 @@ export function AuthProvider({ children }) {
           console.log('?덈줈 ?ㅼ젙??userData:', userData);
           console.log('?덈줈 ?ㅼ젙??token:', token);
 
-          setUser(userData);
+          const normalizedUser = normalizeUserData(userData, user);
+          setUser(normalizedUser);
           setAccessToken(token);
 
           // localStorage?먮뒗 ?ъ슜???뺣낫留????(UX 媛쒖꽑?? accessToken? ??ν븯吏 ?딆쓬)
-          localStorage.setItem('user', JSON.stringify(userData));
+          localStorage.setItem('user', JSON.stringify(normalizedUser));
           console.log('?좏겙 媛깆떊 ?깃났 - ?곹깭 ?낅뜲?댄듃 ?꾨즺');
         } else {
           // ?좏겙 媛깆떊 ?ㅽ뙣: 濡쒓렇?꾩썐 ?곹깭 ?좎?
@@ -139,14 +170,15 @@ export function AuthProvider({ children }) {
    * @param {string} token - accessToken
    */
   const login = (userData, token) => {
+    const normalizedUser = normalizeUserData(userData, user);
     // ?곹깭 ?낅뜲?댄듃
-    setUser(userData);
+    setUser(normalizedUser);
     setAccessToken(token);
 
     // localStorage?먮뒗 ?ъ슜???뺣낫留????(UX 媛쒖꽑??
     // accessToken? 蹂댁븞???꾪빐 硫붾え由?state)?먮쭔 ???
     // ?섏씠吏 ?덈줈怨좎묠 ?쒖뿉??/refresh API瑜??듯빐 ???좏겙 諛쒓툒
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
   };
 
   /**
@@ -211,14 +243,15 @@ export function AuthProvider({ children }) {
     setUser((prevUser) => {
       const nextUser =
         typeof updater === 'function' ? updater(prevUser) : updater;
+      const normalizedUser = normalizeUserData(nextUser, prevUser);
 
-      if (nextUser) {
-        localStorage.setItem('user', JSON.stringify(nextUser));
+      if (normalizedUser) {
+        localStorage.setItem('user', JSON.stringify(normalizedUser));
       } else {
         localStorage.removeItem('user');
       }
 
-      return nextUser;
+      return normalizedUser;
     });
   };
 
@@ -260,13 +293,14 @@ export function AuthProvider({ children }) {
         // response.data.data 援ъ“: { accessToken, user: { id, email, name, role } }
         const newAccessToken = response.data.data.accessToken;
         const userData = response.data.data.user;
+        const normalizedUser = normalizeUserData(userData, user);
 
         // ?곹깭 ?낅뜲?댄듃
-        setUser(userData);
+        setUser(normalizedUser);
         setAccessToken(newAccessToken);
 
         // localStorage?먮뒗 ?ъ슜???뺣낫留????(UX 媛쒖꽑??
-        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(normalizedUser));
 
         console.log('Access Token 媛깆떊 ?깃났');
 

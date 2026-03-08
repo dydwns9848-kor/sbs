@@ -9,6 +9,18 @@ function GNB() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   const profilePath = user?.id ? `/users/${user.id}` : '/profile';
+  const userAvatarCandidate = user?.profileImage
+    ?? user?.userProfileImage
+    ?? user?.profileImageUrl
+    ?? user?.avatar
+    ?? user?.avatarUrl
+    ?? null;
+  const userAvatar = (
+    typeof userAvatarCandidate === 'string'
+    && ['null', 'undefined', ''].includes(userAvatarCandidate.trim().toLowerCase())
+  )
+    ? null
+    : userAvatarCandidate;
 
   const handleLogout = async () => {
     if (!window.confirm('로그아웃 하시겠습니까?')) return;
@@ -50,7 +62,7 @@ function GNB() {
             <>
               <Link to={profilePath} className="gnb-user-info">
                 <img
-                  src={user?.profileImage || defaultUserImage}
+                  src={userAvatar || defaultUserImage}
                   alt="프로필"
                   className="gnb-user-avatar"
                 />

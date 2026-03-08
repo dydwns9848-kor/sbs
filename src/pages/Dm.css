@@ -211,10 +211,22 @@
 
 .dm-message-item {
   display: flex;
+  align-items: flex-end;
+  gap: 0.38rem;
 }
 
 .dm-message-item.mine {
   justify-content: flex-end;
+  flex-direction: row-reverse;
+}
+
+.dm-message-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex: 0 0 auto;
 }
 
 .dm-bubble {
@@ -256,8 +268,17 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.72rem;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 0.55rem;
+  align-items: end;
+}
+
+.dm-input-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
 .dm-input-form textarea {
@@ -328,5 +349,14 @@
 
   .dm-room-panel {
     min-height: 58vh;
+  }
+
+  .dm-input-form {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .dm-input-form button {
+    grid-column: 2 / 3;
+    justify-self: end;
   }
 }
