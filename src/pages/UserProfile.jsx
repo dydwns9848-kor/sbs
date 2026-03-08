@@ -56,8 +56,67 @@ async function tryFetchUserProfile(authorId, accessToken) {
     { url: `${API_CONFIG.baseUrl}/users/${authorId}/profile` },
     { url: `${API_CONFIG.baseUrl}/users/${authorId}/public` },
     { url: `${API_CONFIG.baseUrl}/users/${authorId}/info` },
+    { url: `${API_CONFIG.baseUrl}/users/profile/${authorId}` },
     { url: `${API_CONFIG.baseUrl}/user/${authorId}` },
   ];
+
+  const getId = (obj) => obj?.id ?? obj?.userId ?? obj?.memberId ?? obj?.authorId ?? null;
+  const getName = (obj) => {
+    const fullName = [obj?.lastName, obj?.firstName].filter(Boolean).join(' ').trim();
+    return obj?.name
+      || obj?.userName
+      || obj?.username
+      || obj?.nickname
+      || obj?.nickName
+      || obj?.user_name
+      || fullName
+      || null;
+  };
+  const getImage = (obj) => obj?.profileImage
+    || obj?.userProfileImage
+    || obj?.profileImageUrl
+    || obj?.profile_image
+    || obj?.avatar
+    || obj?.avatarUrl
+    || obj?.imageUrl
+    || null;
+
+  const findProfileDeep = (root) => {
+    const queue = [root];
+    const visited = new Set();
+    const fallbackCandidates = [];
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (!current || typeof current !== 'object') continue;
+      if (visited.has(current)) continue;
+      visited.add(current);
+
+      if (Array.isArray(current)) {
+        current.forEach((item) => queue.push(item));
+        continue;
+      }
+
+      const id = getId(current);
+      const name = getName(current);
+      const profileImage = getImage(current);
+
+      if (id && Number(id) === Number(authorId) && (name || profileImage)) {
+        return { name, profileImage };
+      }
+      if (name || profileImage) {
+        fallbackCandidates.push({ name, profileImage });
+      }
+
+      Object.values(current).forEach((value) => {
+        if (value && typeof value === 'object') {
+          queue.push(value);
+        }
+      });
+    }
+
+    return fallbackCandidates[0] || null;
+  };
 
   for (const req of candidates) {
     try {
@@ -67,33 +126,9 @@ async function tryFetchUserProfile(authorId, accessToken) {
       });
       const data = response.data?.data ?? response.data ?? null;
       if (!data || typeof data !== 'object') continue;
-
-      const buckets = [data, data.user, data.profile, data.member, data.content, data.result]
-        .filter((item) => item && typeof item === 'object');
-
-      for (const bucket of buckets) {
-        const bucketId = bucket.id ?? bucket.userId ?? bucket.memberId ?? null;
-        if (bucketId && Number(bucketId) !== Number(authorId)) continue;
-
-        const name = bucket.name
-          || bucket.userName
-          || bucket.username
-          || bucket.nickname
-          || bucket.nickName
-          || bucket.user_name
-          || null;
-        const profileImage = bucket.profileImage
-          || bucket.userProfileImage
-          || bucket.profileImageUrl
-          || bucket.profile_image
-          || bucket.avatar
-          || bucket.avatarUrl
-          || bucket.imageUrl
-          || null;
-
-        if (name || profileImage) {
-          return { name, profileImage };
-        }
+      const found = findProfileDeep(data);
+      if (found && (found.name || found.profileImage)) {
+        return found;
       }
     } catch (err) {
       // 다음 API 시도
@@ -177,7 +212,7 @@ function UserProfile() {
       }
 
       setProfile((prev) => ({
-        name: prev.name || `User ${id}`,
+        name: prev.name || '알 수 없음',
         profileImage: prev.profileImage || null,
       }));
     } catch (err) {
