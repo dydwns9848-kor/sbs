@@ -5,6 +5,7 @@ import axios from 'axios';
 import GNB from '../components/Gnb';
 import Footer from '../components/Footer';
 import { useAuth } from '../hooks/useAuth';
+import { useBookmarks } from '../hooks/useBookmarks';
 import { useFollow } from '../hooks/useFollow';
 import { API_CONFIG } from '../config';
 import { applyCachedViewCount, getViewCount, rememberViewCount } from '../utils/viewCount';
@@ -16,6 +17,7 @@ function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, accessToken, isAuthenticated } = useAuth();
+  const { bookmark, unbookmark, checkBookmark } = useBookmarks(accessToken);
   const {
     getFollowCounts,
     checkFollowing,
@@ -28,6 +30,8 @@ function PostDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   const [followCounts, setFollowCounts] = useState({ followerCount: 0, followingCount: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
@@ -79,6 +83,29 @@ function PostDetail() {
   useEffect(() => {
     fetchPost();
   }, [fetchPost]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadBookmarkState = async () => {
+      if (!isAuthenticated || !accessToken || !id) return;
+
+      try {
+        const next = await checkBookmark(id);
+        if (!cancelled) {
+          setIsBookmarked(next);
+        }
+      } catch (err) {
+        // no-op
+      }
+    };
+
+    loadBookmarkState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, accessToken, id, checkBookmark]);
 
   const isPostLiked = Boolean(post?.liked ?? post?.isLiked ?? false);
   const authorName = post?.author?.name || post?.userName || '알 수 없음';
@@ -273,6 +300,32 @@ function PostDetail() {
     }
   };
 
+  const handleToggleBookmark = async () => {
+    if (!accessToken || isBookmarkLoading || !post?.id) {
+      if (!accessToken) {
+        alert('로그인이 필요합니다.');
+      }
+      return;
+    }
+
+    const previous = isBookmarked;
+    const next = !previous;
+
+    setIsBookmarked(next);
+    setIsBookmarkLoading(true);
+
+    try {
+      const result = previous ? await unbookmark(post.id) : await bookmark(post.id);
+      setIsBookmarked(Boolean(result?.bookmarked ?? next));
+    } catch (err) {
+      console.error('북마크 처리 실패:', err);
+      setIsBookmarked(previous);
+      alert('북마크 처리에 실패했습니다.');
+    } finally {
+      setIsBookmarkLoading(false);
+    }
+  };
+
   const handleAuthorNavigate = () => {
     if (!authorId) return;
     navigate(`/users/${authorId}`, {
@@ -360,6 +413,14 @@ function PostDetail() {
               </div>
 
               <div className="post-detail-actions">
+                <button
+                  type="button"
+                  className={`bookmark-button ${isBookmarked ? 'active' : ''}`}
+                  onClick={handleToggleBookmark}
+                  disabled={!accessToken || isBookmarkLoading}
+                >
+                  {isBookmarkLoading ? '처리 중...' : isBookmarked ? '저장됨' : '저장'}
+                </button>
                 {isOwner ? (
                   <button onClick={handleDelete} className="delete-button">
                     삭제

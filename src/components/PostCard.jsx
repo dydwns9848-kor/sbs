@@ -2,6 +2,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../hooks/useAuth';
+import { useBookmarks } from '../hooks/useBookmarks';
 import { useFollow } from '../hooks/useFollow';
 import { getViewCount } from '../utils/viewCount';
 import FollowListModal from './FollowListModal';
@@ -14,14 +15,18 @@ function PostCard({
   onToggleLike,
   isLikeLoading = false,
   onViewed,
+  onBookmarkChange,
 }) {
   const navigate = useNavigate();
   const { accessToken } = useAuth();
+  const { bookmark, unbookmark, checkBookmark } = useBookmarks(accessToken);
   const { getFollowCounts } = useFollow(accessToken);
 
   const [followCounts, setFollowCounts] = useState({ followerCount: 0, followingCount: 0 });
   const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
   const [followModalTab, setFollowModalTab] = useState('followers');
+  const [isBookmarked, setIsBookmarked] = useState(Boolean(post?.bookmarked ?? post?.isBookmarked ?? false));
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
 
   const liked = Boolean(post?.liked ?? post?.isLiked ?? false);
   const displayViewCount = getViewCount(post);
@@ -29,6 +34,10 @@ function PostCard({
   const authorName = post.author?.name || post.userName || '알 수 없음';
   const authorImage = post.author?.profileImage || post.userProfileImage || null;
   const authorId = post.author?.id || post.userId || null;
+
+  useEffect(() => {
+    setIsBookmarked(Boolean(post?.bookmarked ?? post?.isBookmarked ?? false));
+  }, [post?.bookmarked, post?.isBookmarked, post?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,6 +79,29 @@ function PostCard({
     };
   }, [authorId, getFollowCounts]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadBookmarkState = async () => {
+      if (!isAuthenticated || !accessToken || !post?.id) return;
+
+      try {
+        const next = await checkBookmark(post.id);
+        if (!cancelled) {
+          setIsBookmarked(next);
+        }
+      } catch (err) {
+        // no-op
+      }
+    };
+
+    loadBookmarkState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, accessToken, post?.id, checkBookmark]);
+
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -101,6 +133,31 @@ function PostCard({
   const handleCardClick = () => {
     if (onViewed) {
       onViewed(post.id);
+    }
+  };
+
+  const handleBookmarkClick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated || !accessToken || isBookmarkLoading) return;
+
+    const previous = isBookmarked;
+    const next = !previous;
+
+    setIsBookmarked(next);
+    setIsBookmarkLoading(true);
+
+    try {
+      const result = previous ? await unbookmark(post.id) : await bookmark(post.id);
+      const resolved = Boolean(result?.bookmarked ?? next);
+      setIsBookmarked(resolved);
+      onBookmarkChange?.(post.id, resolved);
+    } catch (err) {
+      setIsBookmarked(previous);
+      alert('북마크 처리에 실패했습니다.');
+    } finally {
+      setIsBookmarkLoading(false);
     }
   };
 
@@ -188,6 +245,15 @@ function PostCard({
           aria-label={liked ? '좋아요 취소' : '좋아요'}
         >
           {isLikeLoading ? '처리 중...' : `❤ ${post.likeCount || 0}`}
+        </button>
+        <button
+          type="button"
+          className={`post-card-bookmark-button ${isBookmarked ? 'active' : ''}`}
+          onClick={handleBookmarkClick}
+          disabled={!isAuthenticated || isBookmarkLoading}
+          aria-label={isBookmarked ? '북마크 해제' : '북마크'}
+        >
+          {isBookmarkLoading ? '처리 중...' : isBookmarked ? '저장됨' : '저장'}
         </button>
         <span className="post-card-stat">댓글 {post.commentCount || 0}</span>
         <span className="post-card-stat">조회 {displayViewCount}</span>

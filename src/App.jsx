@@ -11,6 +11,7 @@ import PostDetail from './pages/PostDetail'
 import Feed from './pages/Feed'
 import UserProfile from './pages/UserProfile'
 import Dm from './pages/Dm'
+import Bookmarks from './pages/Bookmarks'
 import { AuthProvider } from './contexts/AuthProvider'
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
             <Route path='/posts' element={<PostList />}/>
             <Route path='/posts/create' element={<PostCreate />}/>
             <Route path='/posts/:id' element={<PostDetail />}/>
+            <Route path='/bookmarks' element={<Bookmarks />}/>
             <Route path='/users/:id' element={<UserProfile />}/>
             <Route path='/dm' element={<Dm />}/>
           </Routes>

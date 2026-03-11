@@ -194,12 +194,14 @@
 }
 
 .post-card-stat,
-.post-card-like-button {
+.post-card-like-button,
+.post-card-bookmark-button {
   font-size: 0.82rem;
   color: var(--text-muted);
 }
 
-.post-card-like-button {
+.post-card-like-button,
+.post-card-bookmark-button {
   padding: 0;
   border: 0;
   background: transparent;
@@ -208,6 +210,11 @@
 .post-card-like-button:hover:not(:disabled),
 .post-card-like-button.active {
   color: #ff9ab3;
+}
+
+.post-card-bookmark-button:hover:not(:disabled),
+.post-card-bookmark-button.active {
+  color: var(--brand-mint);
 }
 
 .post-list-loading,

@@ -194,6 +194,11 @@ function GNB() {
             게시글
           </Link>
           {isAuthenticated && (
+            <Link to="/bookmarks" className={`gnb-link ${location.pathname.startsWith('/bookmarks') ? 'active' : ''}`}>
+              북마크
+            </Link>
+          )}
+          {isAuthenticated && (
             <Link to="/dm" className={`gnb-link ${location.pathname.startsWith('/dm') ? 'active' : ''}`}>
               DM
               {dmUnreadCount > 0 && (
