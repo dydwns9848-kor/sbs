@@ -1,6 +1,51 @@
 const STORAGE_KEY = 'viewCountCache';
 const cache = new Map();
 
+const getCandidates = (post) => ([
+  post?.viewCount,
+  post?.views,
+  post?.view,
+  post?.view_count,
+  post?.viewCnt,
+  post?.view_cnt,
+  post?.viewsCount,
+  post?.viewCounts,
+  post?.readCount,
+  post?.read_count,
+  post?.reads,
+  post?.hitCount,
+  post?.hit_count,
+  post?.hits,
+  post?.visitCount,
+  post?.visit_count,
+  post?.stats?.viewCount,
+  post?.stats?.views,
+  post?.stats?.view,
+  post?.statistics?.viewCount,
+  post?.statistics?.views,
+  post?.statistics?.view,
+  post?.meta?.viewCount,
+  post?.meta?.views,
+  post?.meta?.view,
+]);
+
+const resolveViewCount = (post) => {
+  if (!post) return null;
+
+  for (const candidate of getCandidates(post)) {
+    if (candidate === null || candidate === undefined || candidate === '') {
+      continue;
+    }
+
+    const numeric = Number(candidate);
+    if (Number.isFinite(numeric) && numeric >= 0) {
+      return numeric;
+    }
+  }
+
+  return null;
+};
+
 const loadCache = () => {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -32,34 +77,7 @@ if (typeof window !== 'undefined') {
 }
 
 export function getViewCount(post) {
-  if (!post) return 0;
-  const candidates = [
-    post.viewCount,
-    post.views,
-    post.view_count,
-    post.viewCnt,
-    post.view_cnt,
-    post.viewsCount,
-    post.readCount,
-    post.read_count,
-    post.hitCount,
-    post.hit_count,
-    post.stats?.viewCount,
-    post.stats?.views,
-    post.statistics?.viewCount,
-    post.statistics?.views,
-    post.meta?.viewCount,
-    post.meta?.views,
-  ];
-
-  for (const candidate of candidates) {
-    const numeric = Number(candidate);
-    if (Number.isFinite(numeric) && numeric >= 0) {
-      return numeric;
-    }
-  }
-
-  return 0;
+  return resolveViewCount(post) ?? 0;
 }
 
 export function withViewCount(post, count) {
@@ -75,15 +93,24 @@ export function withViewCount(post, count) {
 
 export function rememberViewCount(postId, count) {
   const numeric = Number(count);
-  cache.set(postId, Number.isFinite(numeric) && numeric >= 0 ? numeric : 0);
+  if (!Number.isFinite(numeric) || numeric < 0) {
+    return;
+  }
+
+  cache.set(postId, numeric);
   persistCache();
 }
 
 export function applyCachedViewCount(post) {
   if (!post) return post;
   const cached = cache.get(post.id);
-  const server = getViewCount(post);
-  if (typeof cached !== 'number') return withViewCount(post, server);
+  const server = resolveViewCount(post);
+  if (typeof cached !== 'number') {
+    return withViewCount(post, server ?? 0);
+  }
+  if (typeof server !== 'number') {
+    return withViewCount(post, cached);
+  }
   return withViewCount(post, Math.max(server, cached));
 }
 

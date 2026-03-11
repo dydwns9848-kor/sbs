@@ -7,7 +7,7 @@ import Footer from '../components/Footer';
 import { useAuth } from '../hooks/useAuth';
 import { useFollow } from '../hooks/useFollow';
 import { API_CONFIG } from '../config';
-import { getViewCount, rememberViewCount } from '../utils/viewCount';
+import { applyCachedViewCount, getViewCount, rememberViewCount } from '../utils/viewCount';
 import './PostDetail.css';
 import CommentSection from '../components/CommentSection';
 import FollowListModal from '../components/FollowListModal';
@@ -60,9 +60,10 @@ function PostDetail() {
       });
 
       const responsePost = response.data?.data || response.data;
-      setPost(responsePost);
-      if (responsePost) {
-        rememberViewCount(responsePost.id, getViewCount(responsePost));
+      const normalizedPost = applyCachedViewCount(responsePost);
+      setPost(normalizedPost);
+      if (normalizedPost) {
+        rememberViewCount(normalizedPost.id, getViewCount(normalizedPost));
       }
     } catch (err) {
       if (err.response?.status === 404) {

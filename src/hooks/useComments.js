@@ -184,6 +184,7 @@ export function useComments(postId, accessToken) {
       delete copy[commentId];
       return copy;
     });
+    return true;
   }, [buildHeaders]);
 
   useEffect(() => {
