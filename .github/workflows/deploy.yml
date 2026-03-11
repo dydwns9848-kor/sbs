@@ -71,7 +71,7 @@ jobs:
         # actions/checkout@v4: GitHub에서 제공하는 공식 액션
         # - 현재 저장소의 코드를 작업 환경으로 복사합니다
         # - @v4는 버전 4를 의미 (가장 최신 안정 버전)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # ========================================
       # 2. Docker Buildx 설정
@@ -166,7 +166,7 @@ jobs:
       # 1. 코드 체크아웃 (docker-compose.prod.yml 파일 사용을 위해)
       # ========================================
       - name: 코드 체크아웃
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # ========================================
       # 2. docker-compose.prod.yml 파일 전송

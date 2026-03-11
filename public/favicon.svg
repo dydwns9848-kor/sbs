@@ -1,0 +1,32 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#12233D"/>
+      <stop offset="1" stop-color="#06111D"/>
+    </linearGradient>
+    <linearGradient id="stroke" x1="18" y1="14" x2="49" y2="49" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7FE6FF"/>
+      <stop offset="1" stop-color="#4CFFCA"/>
+    </linearGradient>
+    <filter id="glow" x="6" y="6" width="52" height="52" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#bg)"/>
+  <rect x="5" y="5" width="54" height="54" rx="17" stroke="#7FE6FF" stroke-opacity="0.22" stroke-width="2"/>
+
+  <g filter="url(#glow)">
+    <path
+      d="M20 16V48M43 16L28.5 31.5L45 48"
+      stroke="url(#stroke)"
+      stroke-width="6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
+</svg>
