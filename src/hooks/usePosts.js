@@ -8,6 +8,48 @@ import {
   applyCachedViewCounts,
 } from '../utils/viewCount';
 
+async function enrichPostsWithViewCounts(posts, accessToken) {
+  const targets = posts.filter((post) => getViewCount(post) === 0 && post?.id);
+  if (targets.length === 0) {
+    return posts;
+  }
+
+  const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+
+  const results = await Promise.allSettled(
+    targets.map((post) =>
+      axios.get(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${post.id}`, {
+        headers,
+        withCredentials: true,
+      })
+    )
+  );
+
+  const countMap = new Map();
+
+  results.forEach((result, index) => {
+    if (result.status !== 'fulfilled') {
+      return;
+    }
+
+    const source = result.value.data?.data ?? result.value.data;
+    const nextCount = getViewCount(source);
+    if (Number.isFinite(nextCount) && nextCount > 0) {
+      countMap.set(targets[index].id, nextCount);
+      rememberViewCount(targets[index].id, nextCount);
+    }
+  });
+
+  if (countMap.size === 0) {
+    return posts;
+  }
+
+  return posts.map((post) => {
+    const nextCount = countMap.get(post.id);
+    return typeof nextCount === 'number' ? withViewCount(post, nextCount) : post;
+  });
+}
+
 /**
  * usePosts 커스텀 훅
  *
@@ -66,7 +108,11 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
         const postData = Array.isArray(response.data.data)
           ? response.data.data
           : response.data.data.content || [];
-        setPosts(applyCachedViewCounts(postData));
+        const normalizedPosts = applyCachedViewCounts(postData);
+        setPosts(normalizedPosts);
+
+        const enrichedPosts = await enrichPostsWithViewCounts(normalizedPosts, accessToken);
+        setPosts(enrichedPosts);
       } else {
         setPosts([]);
       }
