@@ -1,4 +1,4 @@
-import './Footer.css'
+import './Footer.css';
 
 function Footer() {
   return (
@@ -6,20 +6,19 @@ function Footer() {
       <div className="footer-container">
         <div className="footer-content">
           <p className="footer-text">
-            © 2024 My Work. All rights reserved.
+            © 2026 Kim Yongjun Portfolio. All rights reserved.
           </p>
           <div className="footer-links">
-            <a href="#" className="footer-link">Privacy Policy</a>
+            <a href="#" className="footer-link">Portfolio</a>
             <span className="footer-separator">|</span>
-            <a href="#" className="footer-link">Terms of Service</a>
+            <a href="#" className="footer-link">Projects</a>
             <span className="footer-separator">|</span>
             <a href="#" className="footer-link">Contact</a>
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }
 
-export default Footer
-
+export default Footer;

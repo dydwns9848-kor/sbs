@@ -47,10 +47,6 @@ function Home() {
           <div className="home-stack-shell" aria-label="Technology Stack">
             <div className="home-stack-intro">
               <span className="home-stack-kicker">TECH STACK</span>
-              <p>
-                Built with a backend-first mindset, shipped with practical tooling,
-                and designed to scale as a real product.
-              </p>
             </div>
 
             <div className="home-stack-grid">
