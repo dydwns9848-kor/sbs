@@ -286,6 +286,9 @@ function GNB() {
                   }}
                 />
                 <span className="gnb-user-name">{user?.name || '내 프로필'}</span>
+                {isAdmin && (
+                  <span className="gnb-admin-badge">관리자</span>
+                )}
               </Link>
               <button onClick={handleLogout} className="auth-link logout-button" type="button">
                 로그아웃

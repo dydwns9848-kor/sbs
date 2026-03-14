@@ -124,6 +124,17 @@
   border: 1px solid rgba(255, 255, 255, 0.32);
 }
 
+.gnb-admin-badge {
+  border: 1px solid rgba(76, 255, 202, 0.5);
+  border-radius: 999px;
+  padding: 0.1rem 0.42rem;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #041017;
+  background: linear-gradient(120deg, var(--brand-cyan), var(--brand-mint));
+}
+
 .logout-button {
   color: #ffc6d2;
   border-color: rgba(255, 111, 142, 0.45);
@@ -220,6 +231,11 @@
   .gnb-user-avatar {
     width: 24px;
     height: 24px;
+  }
+
+  .gnb-admin-badge {
+    padding: 0.08rem 0.34rem;
+    font-size: 0.6rem;
   }
 }
 
