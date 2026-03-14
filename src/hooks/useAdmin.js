@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '../config';
 import { normalizePageData } from '../utils/admin';
@@ -18,7 +18,7 @@ export function useAdmin(accessToken) {
     accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
   ), [accessToken]);
 
-  const get = async (endpoint, params = {}) => {
+  const get = useCallback(async (endpoint, params = {}) => {
     const url = `${API_CONFIG.baseUrl}${endpoint}`;
     const response = await axios.get(url, {
       params: compactQuery(params),
@@ -26,18 +26,18 @@ export function useAdmin(accessToken) {
       withCredentials: true,
     });
     return getData(response);
-  };
+  }, [headers]);
 
-  const patch = async (endpoint, body = {}) => {
+  const patch = useCallback(async (endpoint, body = {}) => {
     const url = `${API_CONFIG.baseUrl}${endpoint}`;
     const response = await axios.patch(url, body, {
       headers,
       withCredentials: true,
     });
     return getData(response);
-  };
+  }, [headers]);
 
-  const del = async (endpoint, body = null) => {
+  const del = useCallback(async (endpoint, body = null) => {
     const url = `${API_CONFIG.baseUrl}${endpoint}`;
     const response = await axios.delete(url, {
       headers,
@@ -45,32 +45,61 @@ export function useAdmin(accessToken) {
       data: body || undefined,
     });
     return getData(response);
-  };
+  }, [headers]);
 
-  return {
-    getDashboardSummary: () => get(API_CONFIG.endpoints.admin.dashboardSummary),
+  const getDashboardSummary = useCallback(
+    () => get(API_CONFIG.endpoints.admin.dashboardSummary),
+    [get]
+  );
 
-    getUsers: async (params = {}) => normalizePageData(
-      await get(API_CONFIG.endpoints.admin.users, params)
-    ),
-    getUserDetail: (userId) => get(API_CONFIG.endpoints.admin.userDetail(userId)),
-    updateUserStatus: (userId, payload) => patch(API_CONFIG.endpoints.admin.userStatus(userId), payload),
-    updateUserRole: (userId, payload) => patch(API_CONFIG.endpoints.admin.userRole(userId), payload),
+  const getUsers = useCallback(async (params = {}) => normalizePageData(
+    await get(API_CONFIG.endpoints.admin.users, params)
+  ), [get]);
+  const getUserDetail = useCallback((userId) => get(API_CONFIG.endpoints.admin.userDetail(userId)), [get]);
+  const updateUserStatus = useCallback((userId, payload) => patch(API_CONFIG.endpoints.admin.userStatus(userId), payload), [patch]);
+  const updateUserRole = useCallback((userId, payload) => patch(API_CONFIG.endpoints.admin.userRole(userId), payload), [patch]);
 
-    getPosts: async (params = {}) => normalizePageData(
-      await get(API_CONFIG.endpoints.admin.posts, params)
-    ),
-    getPostDetail: (postId) => get(API_CONFIG.endpoints.admin.postDetail(postId)),
-    deletePost: (postId, payload) => del(API_CONFIG.endpoints.admin.postDetail(postId), payload),
+  const getPosts = useCallback(async (params = {}) => normalizePageData(
+    await get(API_CONFIG.endpoints.admin.posts, params)
+  ), [get]);
+  const getPostDetail = useCallback((postId) => get(API_CONFIG.endpoints.admin.postDetail(postId)), [get]);
+  const deletePost = useCallback((postId, payload) => del(API_CONFIG.endpoints.admin.postDetail(postId), payload), [del]);
 
-    getComments: async (params = {}) => normalizePageData(
-      await get(API_CONFIG.endpoints.admin.comments, params)
-    ),
-    getCommentDetail: (commentId) => get(API_CONFIG.endpoints.admin.commentDetail(commentId)),
-    deleteComment: (commentId, payload) => del(API_CONFIG.endpoints.admin.commentDetail(commentId), payload),
+  const getComments = useCallback(async (params = {}) => normalizePageData(
+    await get(API_CONFIG.endpoints.admin.comments, params)
+  ), [get]);
+  const getCommentDetail = useCallback((commentId) => get(API_CONFIG.endpoints.admin.commentDetail(commentId)), [get]);
+  const deleteComment = useCallback((commentId, payload) => del(API_CONFIG.endpoints.admin.commentDetail(commentId), payload), [del]);
 
-    getAuditLogs: async (params = {}) => normalizePageData(
-      await get(API_CONFIG.endpoints.admin.auditLogs, params)
-    ),
-  };
+  const getAuditLogs = useCallback(async (params = {}) => normalizePageData(
+    await get(API_CONFIG.endpoints.admin.auditLogs, params)
+  ), [get]);
+
+  return useMemo(() => ({
+    getDashboardSummary,
+    getUsers,
+    getUserDetail,
+    updateUserStatus,
+    updateUserRole,
+    getPosts,
+    getPostDetail,
+    deletePost,
+    getComments,
+    getCommentDetail,
+    deleteComment,
+    getAuditLogs,
+  }), [
+    getDashboardSummary,
+    getUsers,
+    getUserDetail,
+    updateUserStatus,
+    updateUserRole,
+    getPosts,
+    getPostDetail,
+    deletePost,
+    getComments,
+    getCommentDetail,
+    deleteComment,
+    getAuditLogs,
+  ]);
 }
