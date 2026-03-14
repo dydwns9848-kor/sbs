@@ -193,9 +193,6 @@ function GNB() {
           <Link to="/posts" className={`gnb-link ${location.pathname.startsWith('/posts') ? 'active' : ''}`}>
             게시글
           </Link>
-          <Link to="/hashtags" className={`gnb-link ${location.pathname.startsWith('/hashtags') ? 'active' : ''}`}>
-            해시태그
-          </Link>
           {isAuthenticated && (
             <Link to="/bookmarks" className={`gnb-link ${location.pathname.startsWith('/bookmarks') ? 'active' : ''}`}>
               북마크
@@ -209,6 +206,9 @@ function GNB() {
               )}
             </Link>
           )}
+          <Link to="/hashtags" className={`gnb-link ${location.pathname.startsWith('/hashtags') ? 'active' : ''}`}>
+            해시태그
+          </Link>
           <Link to="/feed" className={`gnb-link ${location.pathname.startsWith('/feed') ? 'active' : ''}`}>
             피드
           </Link>
