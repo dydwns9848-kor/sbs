@@ -47,6 +47,20 @@ export const API_CONFIG = {
       postsByName: (name) => `/hashtags/${encodeURIComponent(name)}/posts`,
     },
 
+    // 관리자
+    admin: {
+      dashboardSummary: '/admin/dashboard/summary',
+      users: '/admin/users',
+      userDetail: (userId) => `/admin/users/${userId}`,
+      userStatus: (userId) => `/admin/users/${userId}/status`,
+      userRole: (userId) => `/admin/users/${userId}/role`,
+      posts: '/admin/posts',
+      postDetail: (postId) => `/admin/posts/${postId}`,
+      comments: '/admin/comments',
+      commentDetail: (commentId) => `/admin/comments/${commentId}`,
+      auditLogs: '/admin/audit-logs',
+    },
+
     // 피드
     feed: {
       home: '/feed',
