@@ -3,6 +3,7 @@ import GNB from './Gnb';
 import Footer from './Footer';
 import { useAuth } from '../hooks/useAuth';
 import { isAdminUser } from '../utils/admin';
+import '../pages/Admin.css';
 
 function AdminGuard() {
   const { user, isLoading, isAuthenticated } = useAuth();

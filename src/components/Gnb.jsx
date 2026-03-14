@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useDm } from '../hooks/useDm';
 import { API_CONFIG } from '../config';
+import { isAdminUser } from '../utils/admin';
 import './Gnb.css';
 import defaultUserImage from '../assets/default_user.png';
 
@@ -52,6 +53,7 @@ function GNB() {
   const [avatarTryIndex, setAvatarTryIndex] = useState(0);
 
   const profilePath = user?.id ? `/users/${user.id}` : '/profile';
+  const isAdmin = isAdminUser(user);
 
   const userAvatarCandidate = user?.profileImage
     ?? user?.userProfileImage
@@ -212,6 +214,11 @@ function GNB() {
           <Link to="/feed" className={`gnb-link ${location.pathname.startsWith('/feed') ? 'active' : ''}`}>
             피드
           </Link>
+          {isAdmin && (
+            <Link to="/admin" className={`gnb-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}>
+              관리자
+            </Link>
+          )}
         </div>
 
         <div className="gnb-right">

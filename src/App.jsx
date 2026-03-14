@@ -14,6 +14,12 @@ import Dm from './pages/Dm'
 import Bookmarks from './pages/Bookmarks'
 import Hashtags from './pages/Hashtags'
 import HashtagPosts from './pages/HashtagPosts'
+import AdminGuard from './components/AdminGuard'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminUsers from './pages/AdminUsers'
+import AdminPosts from './pages/AdminPosts'
+import AdminComments from './pages/AdminComments'
+import AdminAuditLogs from './pages/AdminAuditLogs'
 import { AuthProvider } from './contexts/AuthProvider'
 
 function App() {
@@ -41,6 +47,13 @@ function App() {
             <Route path='/bookmarks' element={<Bookmarks />}/>
             <Route path='/users/:id' element={<UserProfile />}/>
             <Route path='/dm' element={<Dm />}/>
+            <Route path='/admin' element={<AdminGuard />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path='users' element={<AdminUsers />} />
+              <Route path='posts' element={<AdminPosts />} />
+              <Route path='comments' element={<AdminComments />} />
+              <Route path='audit-logs' element={<AdminAuditLogs />} />
+            </Route>
           </Routes>
         </BrowserRouter>
       </AuthProvider>
