@@ -208,6 +208,28 @@
   margin-bottom: 0.8rem;
 }
 
+.post-card-hashtags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  margin-bottom: 0.75rem;
+}
+
+.post-card-hashtag {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(127, 230, 255, 0.1);
+  color: var(--brand-cyan);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.58rem;
+}
+
+.post-card-hashtag:hover {
+  color: var(--brand-mint);
+  border-color: var(--line-strong);
+}
+
 .post-card-thumbnail {
   position: relative;
   border-radius: 10px;

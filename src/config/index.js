@@ -38,6 +38,15 @@ export const API_CONFIG = {
     postsWithImages: '/posts/with-images',
     myPosts: '/posts/me',
 
+    // 해시태그
+    hashtags: {
+      trending: '/hashtags/trending',
+      topTrending: '/hashtags/trending/top',
+      search: '/hashtags/search',
+      byName: (name) => `/hashtags/${encodeURIComponent(name)}`,
+      postsByName: (name) => `/hashtags/${encodeURIComponent(name)}/posts`,
+    },
+
     // 피드
     feed: {
       home: '/feed',

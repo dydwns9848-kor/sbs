@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 import GNB from '../components/Gnb';
@@ -9,6 +9,7 @@ import { useBookmarks } from '../hooks/useBookmarks';
 import { useFollow } from '../hooks/useFollow';
 import { API_CONFIG } from '../config';
 import { applyCachedViewCount, getViewCount, rememberViewCount } from '../utils/viewCount';
+import { extractHashtagNames, formatHashtag } from '../utils/hashtag';
 import './PostDetail.css';
 import CommentSection from '../components/CommentSection';
 import FollowListModal from '../components/FollowListModal';
@@ -111,6 +112,7 @@ function PostDetail() {
   const authorName = post?.author?.name || post?.userName || '알 수 없음';
   const authorImage = post?.author?.profileImage || post?.userProfileImage || null;
   const authorId = post?.author?.id || post?.userId || null;
+  const hashtags = extractHashtagNames(post).slice(0, 10);
 
   const isOwner = Boolean(
     user &&
@@ -445,6 +447,20 @@ function PostDetail() {
             <div className="post-detail-content">
               <p>{post.content}</p>
             </div>
+
+            {hashtags.length > 0 && (
+              <div className="post-detail-hashtags">
+                {hashtags.map((tagName) => (
+                  <Link
+                    key={`${post.id}-${tagName}`}
+                    to={`/hashtags/${encodeURIComponent(tagName)}`}
+                    className="post-detail-hashtag"
+                  >
+                    {formatHashtag(tagName)}
+                  </Link>
+                ))}
+              </div>
+            )}
 
             {post.images && post.images.length > 0 && (
               <div className="post-detail-images">

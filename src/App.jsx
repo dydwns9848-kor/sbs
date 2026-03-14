@@ -12,6 +12,8 @@ import Feed from './pages/Feed'
 import UserProfile from './pages/UserProfile'
 import Dm from './pages/Dm'
 import Bookmarks from './pages/Bookmarks'
+import Hashtags from './pages/Hashtags'
+import HashtagPosts from './pages/HashtagPosts'
 import { AuthProvider } from './contexts/AuthProvider'
 
 function App() {
@@ -34,6 +36,8 @@ function App() {
             <Route path='/posts' element={<PostList />}/>
             <Route path='/posts/create' element={<PostCreate />}/>
             <Route path='/posts/:id' element={<PostDetail />}/>
+            <Route path='/hashtags' element={<Hashtags />}/>
+            <Route path='/hashtags/:name' element={<HashtagPosts />}/>
             <Route path='/bookmarks' element={<Bookmarks />}/>
             <Route path='/users/:id' element={<UserProfile />}/>
             <Route path='/dm' element={<Dm />}/>

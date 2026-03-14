@@ -1,0 +1,29 @@
+.hashtag-posts-container {
+  max-width: 860px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 104px 16px 92px;
+}
+
+.hashtag-posts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hashtag-posts-header h1 {
+  font-size: clamp(1.45rem, 2vw, 2rem);
+}
+
+.hashtag-posts-header p {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 720px) {
+  .hashtag-posts-container {
+    padding: 96px 10px 86px;
+  }
+}

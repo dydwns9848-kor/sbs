@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useFollow } from '../hooks/useFollow';
 import { getViewCount } from '../utils/viewCount';
+import { extractHashtagNames, formatHashtag } from '../utils/hashtag';
 import FollowListModal from './FollowListModal';
 
 const followCountCache = new Map();
@@ -34,6 +35,7 @@ function PostCard({
   const authorName = post.author?.name || post.userName || '알 수 없음';
   const authorImage = post.author?.profileImage || post.userProfileImage || null;
   const authorId = post.author?.id || post.userId || null;
+  const hashtags = extractHashtagNames(post).slice(0, 6);
 
   useEffect(() => {
     setIsBookmarked(Boolean(post?.bookmarked ?? post?.isBookmarked ?? false));
@@ -180,6 +182,12 @@ function PostCard({
     });
   };
 
+  const handleHashtagClick = (e, hashtagName) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/hashtags/${encodeURIComponent(hashtagName)}`);
+  };
+
   return (
     <>
       <Link to={`/posts/${post.id}`} className="post-card" onClick={handleCardClick}>
@@ -221,6 +229,27 @@ function PostCard({
       <div className="post-card-content">
         <p>{previewContent}</p>
       </div>
+
+      {hashtags.length > 0 && (
+        <div className="post-card-hashtags">
+          {hashtags.map((tagName) => (
+            <span
+              key={`${post.id}-${tagName}`}
+              className="post-card-hashtag"
+              role="link"
+              tabIndex={0}
+              onClick={(e) => handleHashtagClick(e, tagName)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleHashtagClick(e, tagName);
+                }
+              }}
+            >
+              {formatHashtag(tagName)}
+            </span>
+          ))}
+        </div>
+      )}
 
       {(post.thumbnailUrl || (post.images && post.images.length > 0)) && (
         <div className="post-card-thumbnail">
