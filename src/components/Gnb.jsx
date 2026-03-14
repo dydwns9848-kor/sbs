@@ -51,6 +51,7 @@ function GNB() {
   const { getMyRooms } = useDm(accessToken);
   const [dmUnreadCount, setDmUnreadCount] = useState(0);
   const [avatarTryIndex, setAvatarTryIndex] = useState(0);
+  const [adminAccess, setAdminAccess] = useState(false);
   const gnbLeftRef = useRef(null);
   const [scrollHint, setScrollHint] = useState({
     show: false,
@@ -59,7 +60,8 @@ function GNB() {
   });
 
   const profilePath = user?.id ? `/users/${user.id}` : '/profile';
-  const isAdmin = isAdminUser(user);
+  const isAdminByUser = isAdminUser(user);
+  const isAdmin = isAdminByUser || adminAccess;
 
   const userAvatarCandidate = user?.profileImage
     ?? user?.userProfileImage
@@ -190,6 +192,38 @@ function GNB() {
       window.removeEventListener('dm-unread-changed', onUnreadChanged);
     };
   }, [isAuthenticated, accessToken, fetchDmUnreadCount]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkAdminAccess = async () => {
+      if (!isAuthenticated || !accessToken) {
+        if (!cancelled) setAdminAccess(false);
+        return;
+      }
+
+      if (isAdminByUser) {
+        if (!cancelled) setAdminAccess(true);
+        return;
+      }
+
+      try {
+        await axios.get(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.admin.dashboardSummary}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          withCredentials: true,
+        });
+        if (!cancelled) setAdminAccess(true);
+      } catch (error) {
+        if (!cancelled) setAdminAccess(false);
+      }
+    };
+
+    checkAdminAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, accessToken, isAdminByUser]);
 
   const updateScrollHint = useCallback(() => {
     const el = gnbLeftRef.current;
