@@ -22,10 +22,69 @@ export function AuthProvider({ children }) {
   // 濡쒕뵫 ?곹깭 (珥덇린 濡쒕뱶 ??localStorage?먯꽌 ?곗씠?곕? 遺덈윭?ㅻ뒗 ?숈븞)
   const [isLoading, setIsLoading] = useState(true);
 
-  const normalizeUserData = (incomingUser, fallbackUser = null) => {
+  const decodeJwtPayload = (token) => {
+    if (!token || typeof token !== 'string') return null;
+    try {
+      const payload = token.split('.')[1];
+      if (!payload) return null;
+      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = decodeURIComponent(
+        atob(normalized)
+          .split('')
+          .map((ch) => `%${(`00${ch.charCodeAt(0).toString(16)}`).slice(-2)}`)
+          .join('')
+      );
+      return JSON.parse(decoded);
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const normalizeRole = (source, fallback, tokenPayload) => {
+    const firstAuthorityFromArray = (arr) => {
+      if (!Array.isArray(arr) || arr.length === 0) return null;
+      const first = arr[0];
+      if (typeof first === 'string') return first;
+      if (first && typeof first === 'object') {
+        return first.authority || first.role || first.name || null;
+      }
+      return null;
+    };
+
+    return (
+      source?.role
+      ?? source?.userRole
+      ?? source?.authority
+      ?? firstAuthorityFromArray(source?.authorities)
+      ?? firstAuthorityFromArray(source?.roles)
+      ?? tokenPayload?.role
+      ?? tokenPayload?.authority
+      ?? firstAuthorityFromArray(tokenPayload?.authorities)
+      ?? firstAuthorityFromArray(tokenPayload?.roles)
+      ?? fallback?.role
+      ?? fallback?.userRole
+      ?? fallback?.authority
+      ?? firstAuthorityFromArray(fallback?.authorities)
+      ?? firstAuthorityFromArray(fallback?.roles)
+      ?? null
+    );
+  };
+
+  const normalizeSuperUser = (source, fallback, tokenPayload) => {
+    if (typeof source?.isSuperUser === 'boolean') return source.isSuperUser;
+    if (typeof source?.is_super_user === 'boolean') return source.is_super_user;
+    if (typeof tokenPayload?.isSuperUser === 'boolean') return tokenPayload.isSuperUser;
+    if (typeof tokenPayload?.is_super_user === 'boolean') return tokenPayload.is_super_user;
+    if (typeof fallback?.isSuperUser === 'boolean') return fallback.isSuperUser;
+    if (typeof fallback?.is_super_user === 'boolean') return fallback.is_super_user;
+    return false;
+  };
+
+  const normalizeUserData = (incomingUser, fallbackUser = null, token = null) => {
     if (!incomingUser && !fallbackUser) return null;
     const source = incomingUser || fallbackUser || {};
     const fallback = fallbackUser || {};
+    const tokenPayload = decodeJwtPayload(token);
 
     const profileImage = source.profileImage
       ?? source.userProfileImage
@@ -68,6 +127,8 @@ export function AuthProvider({ children }) {
     return {
       ...fallback,
       ...source,
+      role: normalizeRole(source, fallback, tokenPayload),
+      isSuperUser: normalizeSuperUser(source, fallback, tokenPayload),
       profileImage: safeProfileImage ?? null,
     };
   };
@@ -147,7 +208,7 @@ export function AuthProvider({ children }) {
           console.log('?덈줈 ?ㅼ젙??userData:', userData);
           console.log('?덈줈 ?ㅼ젙??token:', token);
 
-          const normalizedUser = normalizeUserData(userData, parsedSavedUser || user);
+          const normalizedUser = normalizeUserData(userData, parsedSavedUser || user, token);
           setUser(normalizedUser);
           setAccessToken(token);
 
@@ -193,7 +254,7 @@ export function AuthProvider({ children }) {
   const login = (userData, token) => {
     const savedUser = localStorage.getItem('user');
     const parsedSavedUser = savedUser ? JSON.parse(savedUser) : null;
-    const normalizedUser = normalizeUserData(userData, parsedSavedUser || user);
+    const normalizedUser = normalizeUserData(userData, parsedSavedUser || user, token);
     // ?곹깭 ?낅뜲?댄듃
     setUser(normalizedUser);
     setAccessToken(token);
@@ -266,7 +327,7 @@ export function AuthProvider({ children }) {
     setUser((prevUser) => {
       const nextUser =
         typeof updater === 'function' ? updater(prevUser) : updater;
-      const normalizedUser = normalizeUserData(nextUser, prevUser);
+      const normalizedUser = normalizeUserData(nextUser, prevUser, accessToken);
 
       if (normalizedUser) {
         localStorage.setItem('user', JSON.stringify(normalizedUser));
@@ -318,7 +379,7 @@ export function AuthProvider({ children }) {
         const userData = response.data.data.user;
         const savedUser = localStorage.getItem('user');
         const parsedSavedUser = savedUser ? JSON.parse(savedUser) : null;
-        const normalizedUser = normalizeUserData(userData, parsedSavedUser || user);
+        const normalizedUser = normalizeUserData(userData, parsedSavedUser || user, newAccessToken);
 
         // ?곹깭 ?낅뜲?댄듃
         setUser(normalizedUser);

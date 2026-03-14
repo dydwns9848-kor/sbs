@@ -1,7 +1,31 @@
 export function isAdminUser(user) {
   if (!user) return false;
-  const role = String(user.role || '').toUpperCase();
-  return role === 'ROLE_ADMIN' || role === 'ADMIN' || Boolean(user.isSuperUser);
+  const role = String(user.role || user.userRole || user.authority || '').toUpperCase();
+
+  const authorities = Array.isArray(user.authorities) ? user.authorities : [];
+  const roles = Array.isArray(user.roles) ? user.roles : [];
+  const authorityValues = [...authorities, ...roles]
+    .map((item) => {
+      if (typeof item === 'string') return item;
+      if (item && typeof item === 'object') {
+        return item.authority || item.role || item.name || '';
+      }
+      return '';
+    })
+    .map((value) => String(value).toUpperCase());
+
+  const hasAdminAuthority = authorityValues.some((value) => (
+    value === 'ROLE_ADMIN' || value === 'ADMIN' || value === 'ROLE_SUPER_ADMIN' || value === 'SUPER_ADMIN'
+  ));
+
+  return (
+    role === 'ROLE_ADMIN'
+    || role === 'ADMIN'
+    || role === 'ROLE_SUPER_ADMIN'
+    || role === 'SUPER_ADMIN'
+    || hasAdminAuthority
+    || Boolean(user.isSuperUser)
+  );
 }
 
 export function normalizePageData(data) {
