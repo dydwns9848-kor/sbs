@@ -30,6 +30,10 @@
   min-width: 0;
 }
 
+.gnb-left-shell {
+  min-width: 0;
+}
+
 .gnb-right {
   flex-shrink: 0;
 }
@@ -155,6 +159,56 @@
     display: none;
   }
 
+  .gnb-left-shell {
+    position: relative;
+  }
+
+  .gnb-left-shell.is-scrollable::before,
+  .gnb-left-shell.is-scrollable::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 18px;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .gnb-left-shell.is-scrollable::before {
+    left: 0;
+    background: linear-gradient(90deg, rgba(9, 16, 30, 0.92), rgba(9, 16, 30, 0));
+  }
+
+  .gnb-left-shell.is-scrollable::after {
+    right: 0;
+    background: linear-gradient(270deg, rgba(9, 16, 30, 0.92), rgba(9, 16, 30, 0));
+  }
+
+  .gnb-left-shell.is-scrollable.is-scrolled::before {
+    opacity: 1;
+  }
+
+  .gnb-left-shell.is-scrollable:not(.is-end)::after {
+    opacity: 1;
+  }
+
+  .gnb-scroll-hint {
+    position: absolute;
+    right: 4px;
+    bottom: -12px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: rgba(206, 220, 245, 0.76);
+    background: rgba(9, 16, 30, 0.82);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.08rem 0.44rem;
+    pointer-events: none;
+    z-index: 3;
+  }
+
   .gnb-link,
   .auth-link,
   .logout-button,
@@ -183,6 +237,11 @@
 }
 
 @media (max-width: 640px) {
+  .gnb-scroll-hint {
+    font-size: 0.62rem;
+    bottom: -11px;
+  }
+
   .gnb-user-name {
     max-width: 72px;
     overflow: hidden;

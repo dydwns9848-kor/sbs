@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -51,6 +51,12 @@ function GNB() {
   const { getMyRooms } = useDm(accessToken);
   const [dmUnreadCount, setDmUnreadCount] = useState(0);
   const [avatarTryIndex, setAvatarTryIndex] = useState(0);
+  const gnbLeftRef = useRef(null);
+  const [scrollHint, setScrollHint] = useState({
+    show: false,
+    atStart: true,
+    atEnd: true,
+  });
 
   const profilePath = user?.id ? `/users/${user.id}` : '/profile';
   const isAdmin = isAdminUser(user);
@@ -185,39 +191,83 @@ function GNB() {
     };
   }, [isAuthenticated, accessToken, fetchDmUnreadCount]);
 
+  const updateScrollHint = useCallback(() => {
+    const el = gnbLeftRef.current;
+    if (!el) return;
+
+    const hasOverflow = el.scrollWidth > el.clientWidth + 2;
+    const atStart = el.scrollLeft <= 2;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+
+    setScrollHint({
+      show: hasOverflow,
+      atStart,
+      atEnd,
+    });
+  }, []);
+
+  useEffect(() => {
+    updateScrollHint();
+  }, [updateScrollHint, isAuthenticated, isAdmin, dmUnreadCount]);
+
+  useEffect(() => {
+    const el = gnbLeftRef.current;
+    if (!el) return undefined;
+
+    const onScroll = () => updateScrollHint();
+    const onResize = () => updateScrollHint();
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [updateScrollHint]);
+
   return (
     <nav className="gnb">
       <div className="gnb-container">
-        <div className="gnb-left">
-          <Link to="/" className={`gnb-link ${location.pathname === '/' ? 'active' : ''}`}>
-            HOME
-          </Link>
-          <Link to="/posts" className={`gnb-link ${location.pathname.startsWith('/posts') ? 'active' : ''}`}>
-            게시글
-          </Link>
-          {isAuthenticated && (
-            <Link to="/bookmarks" className={`gnb-link ${location.pathname.startsWith('/bookmarks') ? 'active' : ''}`}>
-              북마크
+        <div
+          className={`gnb-left-shell ${scrollHint.show ? 'is-scrollable' : ''} ${!scrollHint.atStart ? 'is-scrolled' : ''} ${scrollHint.atEnd ? 'is-end' : ''}`}
+        >
+          <div className="gnb-left" ref={gnbLeftRef}>
+            <Link to="/" className={`gnb-link ${location.pathname === '/' ? 'active' : ''}`}>
+              HOME
             </Link>
-          )}
-          {isAuthenticated && (
-            <Link to="/dm" className={`gnb-link ${location.pathname.startsWith('/dm') ? 'active' : ''}`}>
-              DM
-              {dmUnreadCount > 0 && (
-                <span className="gnb-dm-badge">{dmUnreadCount > 99 ? '99+' : dmUnreadCount}</span>
-              )}
+            <Link to="/posts" className={`gnb-link ${location.pathname.startsWith('/posts') ? 'active' : ''}`}>
+              게시글
             </Link>
-          )}
-          <Link to="/hashtags" className={`gnb-link ${location.pathname.startsWith('/hashtags') ? 'active' : ''}`}>
-            해시태그
-          </Link>
-          <Link to="/feed" className={`gnb-link ${location.pathname.startsWith('/feed') ? 'active' : ''}`}>
-            피드
-          </Link>
-          {isAdmin && (
-            <Link to="/admin" className={`gnb-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}>
-              관리자
+            {isAuthenticated && (
+              <Link to="/bookmarks" className={`gnb-link ${location.pathname.startsWith('/bookmarks') ? 'active' : ''}`}>
+                북마크
+              </Link>
+            )}
+            {isAuthenticated && (
+              <Link to="/dm" className={`gnb-link ${location.pathname.startsWith('/dm') ? 'active' : ''}`}>
+                DM
+                {dmUnreadCount > 0 && (
+                  <span className="gnb-dm-badge">{dmUnreadCount > 99 ? '99+' : dmUnreadCount}</span>
+                )}
+              </Link>
+            )}
+            <Link to="/hashtags" className={`gnb-link ${location.pathname.startsWith('/hashtags') ? 'active' : ''}`}>
+              해시태그
             </Link>
+            <Link to="/feed" className={`gnb-link ${location.pathname.startsWith('/feed') ? 'active' : ''}`}>
+              피드
+            </Link>
+            {isAdmin && (
+              <Link to="/admin" className={`gnb-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}>
+                관리자
+              </Link>
+            )}
+          </div>
+          {scrollHint.show && (
+            <span className="gnb-scroll-hint" aria-hidden="true">
+              좌우로 더 보기
+            </span>
           )}
         </div>
 
@@ -258,3 +308,5 @@ function GNB() {
 }
 
 export default GNB;
+
+
