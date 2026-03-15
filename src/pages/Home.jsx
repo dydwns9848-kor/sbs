@@ -5,31 +5,98 @@ import "./Home.css";
 const techStacks = [
   {
     category: "SERVICE PLATFORM",
-    items: ["AWS Lightsail"],
+    items: [
+      {
+        name: "AWS Lightsail",
+        logo: "https://cdn.simpleicons.org/aws/FF9900",
+      },
+    ],
   },
   {
     category: "CODE MANAGEMENT",
-    items: ["Git", "GitHub"],
+    items: [
+      {
+        name: "Git",
+        logo: "https://cdn.simpleicons.org/git/F05032",
+      },
+      {
+        name: "GitHub",
+        logo: "https://cdn.simpleicons.org/github/FFFFFF",
+      },
+    ],
   },
   {
     category: "DEVOPS",
-    items: ["GitHub Actions"],
+    items: [
+      {
+        name: "GitHub Actions",
+        logo: "https://cdn.simpleicons.org/githubactions/2088FF",
+      },
+    ],
   },
   {
     category: "BACKEND",
-    items: ["Java", "Spring Framework", "Spring Boot", "Spring Security"],
+    items: [
+      {
+        name: "Java",
+        logo: "https://cdn.simpleicons.org/openjdk/FFFFFF",
+      },
+      {
+        name: "Spring Framework",
+        logo: "https://cdn.simpleicons.org/spring/6DB33F",
+      },
+      {
+        name: "Spring Boot",
+        logo: "https://cdn.simpleicons.org/springboot/6DB33F",
+      },
+      {
+        name: "Spring Security",
+        logo: "https://cdn.simpleicons.org/spring/6DB33F",
+      },
+    ],
   },
   {
     category: "DATABASE",
-    items: ["MySQL 8"],
+    items: [
+      {
+        name: "MySQL 8",
+        logo: "https://cdn.simpleicons.org/mysql/4479A1",
+      },
+    ],
   },
   {
     category: "FRONTEND",
-    items: ["React"],
+    items: [
+      {
+        name: "React",
+        logo: "https://cdn.simpleicons.org/react/61DAFB",
+      },
+    ],
   },
   {
     category: "DEV TOOLS",
-    items: ["Docker", "Postman", "IntelliJ", "Visual Studio Code", "Codex"],
+    items: [
+      {
+        name: "Docker",
+        logo: "https://cdn.simpleicons.org/docker/2496ED",
+      },
+      {
+        name: "Postman",
+        logo: "https://cdn.simpleicons.org/postman/FF6C37",
+      },
+      {
+        name: "IntelliJ",
+        logo: "https://cdn.simpleicons.org/intellijidea/FFFFFF",
+      },
+      {
+        name: "Visual Studio Code",
+        logo: "https://cdn.simpleicons.org/visualstudiocode/007ACC",
+      },
+      {
+        name: "Codex",
+        logo: "https://cdn.simpleicons.org/openai/10A37F",
+      },
+    ],
   },
 ];
 
@@ -55,8 +122,14 @@ function Home() {
                   <h2>{stack.category}</h2>
                   <div className="home-stack-tags">
                     {stack.items.map((item) => (
-                      <span key={item} className="home-stack-tag">
-                        {item}
+                      <span key={item.name} className="home-stack-tag">
+                        <img
+                          src={item.logo}
+                          alt={`${item.name} logo`}
+                          className="home-stack-logo"
+                          loading="lazy"
+                        />
+                        {item.name}
                       </span>
                     ))}
                   </div>
