@@ -8,7 +8,8 @@ const techStacks = [
     items: [
       {
         name: "AWS Lightsail",
-        logo: "https://cdn.simpleicons.org/aws/FF9900",
+        logo: "https://www.vectorlogo.zone/logos/amazon_aws/amazon_aws-ar21.svg",
+        fallbackLogo: "https://cdn.simpleicons.org/aws/FF9900",
       },
     ],
   },
@@ -39,7 +40,8 @@ const techStacks = [
     items: [
       {
         name: "Java",
-        logo: "https://cdn.simpleicons.org/openjdk/FFFFFF",
+        logo: "https://www.vectorlogo.zone/logos/java/java-ar21.svg",
+        fallbackLogo: "https://cdn.simpleicons.org/openjdk/FFFFFF",
       },
       {
         name: "Spring Framework",
@@ -90,11 +92,13 @@ const techStacks = [
       },
       {
         name: "Visual Studio Code",
-        logo: "https://cdn.simpleicons.org/visualstudiocode/007ACC",
+        logo: "https://raw.githubusercontent.com/devicons/devicon/master/icons/vscode/vscode-original.svg",
+        fallbackLogo: "https://cdn.simpleicons.org/visualstudiocode/007ACC",
       },
       {
         name: "Codex",
-        logo: "https://cdn.simpleicons.org/openai/10A37F",
+        logo: "https://api.iconify.design/simple-icons:openai.svg?color=%2310A37F",
+        fallbackLogo: "https://cdn.simpleicons.org/openai/10A37F",
       },
     ],
   },
@@ -128,6 +132,13 @@ function Home() {
                           alt={`${item.name} logo`}
                           className="home-stack-logo"
                           loading="lazy"
+                          onError={(event) => {
+                            if (item.fallbackLogo && event.currentTarget.src !== item.fallbackLogo) {
+                              event.currentTarget.src = item.fallbackLogo;
+                              return;
+                            }
+                            event.currentTarget.style.display = "none";
+                          }}
                         />
                         {item.name}
                       </span>
