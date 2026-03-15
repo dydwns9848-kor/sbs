@@ -135,22 +135,23 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  min-height: 34px;
+  min-height: 40px;
   border-radius: 999px;
   border: 1px solid rgba(127, 230, 255, 0.18);
   background:
     linear-gradient(120deg, rgba(127, 230, 255, 0.12), rgba(76, 255, 202, 0.08));
   color: rgba(244, 248, 255, 0.92);
-  padding: 0.4rem 0.78rem;
-  font-size: 0.82rem;
+  padding: 0.45rem 0.92rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .home-stack-logo {
-  width: 16px;
-  height: 16px;
+  width: auto;
+  height: 22px;
+  max-width: 52px;
   object-fit: contain;
   flex-shrink: 0;
 }

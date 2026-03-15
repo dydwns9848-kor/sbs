@@ -177,32 +177,19 @@ function AdminDashboard() {
           ) : error ? (
             <p className="admin-state">가입자 통계를 불러오지 못했습니다.</p>
           ) : (
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>날짜</th>
-                    <th>가입자 수</th>
-                    <th>추이</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dailySignups.map((row) => (
-                    <tr key={row.dateKey}>
-                      <td>{row.label}</td>
-                      <td>{Number(row.count || 0).toLocaleString('ko-KR')}명</td>
-                      <td>
-                        <div className="admin-signup-bar-track" aria-hidden="true">
-                          <span
-                            className="admin-signup-bar-fill"
-                            style={{ width: `${Math.max(4, (row.count / maxSignupCount) * 100)}%` }}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="admin-signup-chart" role="img" aria-label="최근 7일 일별 가입자 수 막대 그래프">
+              {dailySignups.map((row) => (
+                <div key={row.dateKey} className="admin-signup-bar-item">
+                  <span className="admin-signup-value">{Number(row.count || 0).toLocaleString('ko-KR')}</span>
+                  <div className="admin-signup-bar-track" aria-hidden="true">
+                    <span
+                      className="admin-signup-bar-fill"
+                      style={{ height: `${Math.max(8, (row.count / maxSignupCount) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="admin-signup-date">{row.label.slice(5)}</span>
+                </div>
+              ))}
             </div>
           )}
         </section>
